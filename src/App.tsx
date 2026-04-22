@@ -18,8 +18,15 @@ import ManagementPage from "./pages/LMS/admin/Management";
 import AnalyticsPage from "./pages/LMS/admin/Analytics";
 import TeacherDashboard from "./pages/LMS/teacher/TeacherDashboard";
 import AddCoursePage from "./pages/LMS/AddCoursePage";
-
+import MyCoursesPage from "./pages/LMS/student/MyCourses";
+import StudentEnrollmentsPage from "./pages/LMS/student/StudentEnrollments";
 import ProtectedRoute from "./components/ProtectedRoute";
+import ManageUsersPage from "./pages/LMS/admin/ManageUsers";
+import EditUserPage from "./pages/LMS/admin/EditUser";
+import TeachersPage from "./pages/LMS/admin/Teachers";
+import StudentsPage from "./pages/LMS/admin/Students";
+import AssignCoursesPage from "./pages/LMS/admin/AssignCourses";
+import EnrollmentsPage from "./pages/LMS/admin/Enrollments";
 
 export default function App() {
   return (
@@ -38,12 +45,76 @@ export default function App() {
           <Route path="/about" element={<AboutPage />} />
           <Route path="/contact" element={<ContactPage />} />
 
+          {/* STUDENT ONLY */}
+          <Route
+            path="/student/my-courses"
+            element={
+              <ProtectedRoute allowedRoles={["student"]}>
+                <MyCoursesPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/student/enrollments"
+            element={
+              <ProtectedRoute allowedRoles={["student"]}>
+                <StudentEnrollmentsPage />
+              </ProtectedRoute>
+            }
+          />
+
           {/* STUDENT + TEACHER + ADMIN (logged in only) */}
           <Route
             path="/courses/new"
             element={
               <ProtectedRoute allowedRoles={["admin", "teacher"]}>
                 <AddCoursePage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/admin/students"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <StudentsPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/admin/teachers"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <TeachersPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/admin/enrollments"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <EnrollmentsPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/admin/teachers/assign"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <AssignCoursesPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/admin/users/edit/:id"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <EditUserPage />
               </ProtectedRoute>
             }
           />
@@ -77,6 +148,15 @@ export default function App() {
           />
 
           <Route
+            path="/admin/manage-users"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <ManageUsersPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
             path="/admin/management"
             element={
               <ProtectedRoute allowedRoles={["admin"]}>
@@ -85,6 +165,7 @@ export default function App() {
             }
           />
 
+          
           <Route
             path="/admin/analytics"
             element={

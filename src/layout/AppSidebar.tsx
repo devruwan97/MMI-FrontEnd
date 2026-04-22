@@ -29,21 +29,63 @@ const navItems: NavItem[] = [
   {
     icon: <TableIcon />,
     name: "Courses",
-    roles: ["admin", "teacher", "student"],
-    subItems: [{ name: "All Courses", path: "/courses" }],
+    roles: ["admin", "teacher"],
+    subItems: [
+      { name: "All Courses", path: "/courses" },
+      { name: "Add Course", path: "/courses/new" },
+    ],
   },
 
-  { icon: <UserCircleIcon />, name: "Add New User", path: "/createUser", roles: ["admin"] },
+  { icon: <TableIcon />, name: "Courses", path: "/courses", roles: ["student"] },
 
-  { icon: <DollarLineIcon />, name: "Payments", path: "/payments", roles: ["admin"] },
+  { icon: <TableIcon />, name: "My Courses", path: "/student/my-courses", roles: ["student"] },
+
+  { icon: <TableIcon />, name: "Enrollments", path: "/student/enrollments", roles: ["student"] },
+
+  {
+    icon: <GroupIcon />,
+    name: "Users",
+    roles: ["admin"],
+    subItems: [
+      { name: "Add User", path: "/createUser" },
+      { name: "Manage Users", path: "/admin/manage-users" },
+    ],
+  },
+
+  {
+    icon: <UserCircleIcon />,
+    name: "Students",
+    roles: ["admin"],
+    subItems: [{ name: "View Students", path: "/admin/students" }],
+  },
+
+  {
+    icon: <UserCircleIcon />,
+    name: "Teachers",
+    roles: ["admin"],
+    subItems: [
+      { name: "View Teachers", path: "/admin/teachers" },
+      { name: "Assign Courses", path: "/admin/teachers/assign" },
+    ],
+  },
+
+  {
+    icon: <TableIcon />,
+    name: "Enrollments",
+    roles: ["admin"],
+    subItems: [{ name: "All Enrollments", path: "/admin/enrollments" }],
+  },
+
+  { icon: <PieChartIcon />, name: "Analytics", path: "/admin/analytics", roles: ["admin"] },
+
+  { icon: <DollarLineIcon />, name: "Payments", path: "/payments", roles: ["admin", "teacher", "student"] },
+
+  { icon: <UserCircleIcon />, name: "Profile", path: "/profile", roles: ["teacher"] },
+
 
   { icon: <UserCircleIcon />, name: "About Us", path: "/about", roles: ["admin", "teacher", "student"] },
 
   { icon: <MailIcon />, name: "Contact", path: "/contact", roles: ["admin", "teacher", "student"] },
-
-  { icon: <GroupIcon />, name: "Management", path: "/admin/management", roles: ["admin"] },
-
-  { icon: <PieChartIcon />, name: "Analytics", path: "/admin/analytics", roles: ["admin"] },
 
   { icon: <CalenderIcon />, name: "Teacher Dashboard", path: "/teacher/dashboard", roles: ["teacher"] },
 ];

@@ -53,14 +53,6 @@ export default function CoursesPage() {
             Find the right course for your learning journey
           </p>
         </div>
-
-        {/* ✅ Add Course Button */}
-        <Link
-          to="/courses/new"
-          className="bg-brand-500 text-white px-4 py-2 rounded-xl hover:bg-brand-600"
-        >
-          + Add Course
-        </Link>
       </div>
 
       {/* Search & Filters */}
