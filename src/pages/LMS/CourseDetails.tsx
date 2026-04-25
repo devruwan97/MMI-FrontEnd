@@ -9,17 +9,42 @@ export default function CourseDetails() {
   const [course, setCourse] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
+  const getToken = () => localStorage.getItem("token");
+
   useEffect(() => {
-    fetch(`http://localhost:8080/api/courses/${id}`)
-      .then((res) => res.json())
-      .then((data) => {
+    const fetchCourse = async () => {
+      try {
+        const res = await fetch(
+          `http://localhost:8080/api/courses/${id}`,
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${getToken()}`,
+            },
+          }
+        );
+
+        if (res.status === 401 || res.status === 403) {
+          throw new Error("Unauthorized - please login again");
+        }
+
+        if (!res.ok) {
+          throw new Error("Failed to fetch course");
+        }
+
+        const data = await res.json();
         setCourse(data);
+      } catch (err) {
+        console.error("Error fetching course:", err);
+        alert("Failed to load course");
+      } finally {
         setLoading(false);
-      })
-      .catch(() => setLoading(false));
+      }
+    };
+
+    fetchCourse();
   }, [id]);
 
-  // ✅ DELETE FUNCTION (no UI change)
   const handleDelete = async () => {
     const confirmDelete = window.confirm(
       "Are you sure you want to delete this course?"
@@ -28,13 +53,29 @@ export default function CourseDetails() {
     if (!confirmDelete) return;
 
     try {
-      await fetch(`http://localhost:8080/api/courses/${id}`, {
-        method: "DELETE",
-      });
+      const res = await fetch(
+        `http://localhost:8080/api/courses/${id}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${getToken()}`,
+          },
+        }
+      );
 
+      if (res.status === 401 || res.status === 403) {
+        throw new Error("Unauthorized - cannot delete");
+      }
+
+      if (!res.ok) {
+        throw new Error("Delete failed");
+      }
+
+      alert("Course deleted successfully");
       navigate("/courses");
     } catch (err) {
       console.error("Delete failed:", err);
+      alert("Error deleting course");
     }
   };
 
@@ -69,7 +110,6 @@ export default function CourseDetails() {
         description={course.description}
       />
 
-      {/* Back */}
       <Link
         to="/courses"
         className="mb-4 inline-flex items-center gap-1 text-sm text-brand-500 hover:underline"
@@ -77,7 +117,6 @@ export default function CourseDetails() {
         ← Back to Courses
       </Link>
 
-      {/* Hero (UNCHANGED) */}
       <div className="rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-800 mb-6">
         <img
           src={
@@ -118,7 +157,6 @@ export default function CourseDetails() {
                 Capacity: {course.capacity}
               </p>
 
-              {/* ✅ NEW ACTIONS (added WITHOUT breaking UI) */}
               <div className="mt-3 flex flex-col gap-2">
                 <button
                   onClick={() =>
@@ -141,7 +179,6 @@ export default function CourseDetails() {
         </div>
       </div>
 
-      {/* Bottom Section (UNCHANGED STRUCTURE) */}
       <div className="grid grid-cols-12 gap-6">
         <div className="col-span-12 lg:col-span-7">
           <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6">

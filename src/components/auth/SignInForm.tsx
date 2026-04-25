@@ -54,7 +54,6 @@ export default function SignInForm() {
 
       const data = await res.json();
 
-      // ✅ store JWT
       localStorage.setItem("token", data.token);
       localStorage.setItem("role", data.role);
       localStorage.setItem("email", email);
@@ -89,7 +88,6 @@ export default function SignInForm() {
 
         <form onSubmit={handleSubmit}>
           <div className="space-y-6">
-            {/* EMAIL */}
             <div>
               <Label>
                 Email <span className="text-error-500">*</span>
@@ -105,7 +103,6 @@ export default function SignInForm() {
               />
             </div>
 
-            {/* PASSWORD */}
             <div>
               <Label>
                 Password <span className="text-error-500">*</span>
@@ -153,7 +150,6 @@ export default function SignInForm() {
               </Link>
             </div>
 
-            {/* BUTTON */}
             <Button className="w-full" size="sm" disabled={loading}>
               {loading ? "Signing in..." : "Sign In"}
             </Button>
@@ -161,7 +157,6 @@ export default function SignInForm() {
         </form>
       </div>
 
-      {/* ERROR MODAL */}
       <Modal isOpen={isOpen} onClose={closeModal} className="max-w-[400px] p-6 text-center">
         <div className="flex flex-col items-center">
           <div className="flex items-center justify-center w-12 h-12 mb-4 bg-error-100 rounded-full dark:bg-error-500/10">

@@ -34,10 +34,8 @@ export default function App() {
       <ScrollToTop />
 
       <Routes>
-        {/* Layout Wrapper */}
         <Route element={<AppLayout />}>
 
-          {/* PUBLIC (any logged-in user) */}
           <Route path="/" element={<LMSHome />} />
           <Route path="/courses" element={<CoursesPage />} />
           <Route path="/courses/:id" element={<CourseDetails />} />
@@ -45,7 +43,6 @@ export default function App() {
           <Route path="/about" element={<AboutPage />} />
           <Route path="/contact" element={<ContactPage />} />
 
-          {/* STUDENT ONLY */}
           <Route
             path="/student/my-courses"
             element={
@@ -64,7 +61,6 @@ export default function App() {
             }
           />
 
-          {/* STUDENT + TEACHER + ADMIN (logged in only) */}
           <Route
             path="/courses/new"
             element={
@@ -137,7 +133,6 @@ export default function App() {
             }
           />
 
-          {/* ADMIN ONLY */}
           <Route
             path="/createUser"
             element={
@@ -175,7 +170,6 @@ export default function App() {
             }
           />
 
-          {/* TEACHER ONLY */}
           <Route
             path="/teacher/dashboard"
             element={
@@ -186,11 +180,9 @@ export default function App() {
           />
         </Route>
 
-        {/* AUTH */}
         <Route path="/signin" element={<SignIn />} />
         <Route path="/register" element={<Register />} />
 
-        {/* 404 */}
         <Route path="*" element={<NotFound />} />
       </Routes>
     </Router>

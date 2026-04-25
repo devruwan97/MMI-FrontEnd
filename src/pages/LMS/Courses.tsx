@@ -16,16 +16,41 @@ export default function CoursesPage() {
   const [courses, setCourses] = useState<any[]>([]);
   const [selected, setSelected] = useState("All");
   const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(true);
 
-  // ✅ Fetch courses from backend
   useEffect(() => {
-    fetch("http://localhost:8080/api/courses")
-      .then((res) => res.json())
-      .then((data) => setCourses(data))
-      .catch((err) => console.error("Error fetching courses:", err));
+    const fetchCourses = async () => {
+      try {
+        const token = localStorage.getItem("token");
+
+        const res = await fetch("http://localhost:8080/api/courses", {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (res.status === 401 || res.status === 403) {
+          throw new Error("Unauthorized - please login again");
+        }
+
+        if (!res.ok) {
+          throw new Error("Failed to fetch courses");
+        }
+
+        const data = await res.json();
+        setCourses(data);
+      } catch (err) {
+        console.error("Error fetching courses:", err);
+        alert("Failed to load courses");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCourses();
   }, []);
 
-  // ✅ Filter logic
   const filtered = courses.filter((c) => {
     const matchCat = selected === "All" || c.category === selected;
 
@@ -43,7 +68,6 @@ export default function CoursesPage() {
         description="Browse all available courses"
       />
 
-      {/* Header */}
       <div className="mb-6 flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold text-gray-800 dark:text-white">
@@ -55,7 +79,6 @@ export default function CoursesPage() {
         </div>
       </div>
 
-      {/* Search & Filters */}
       <div className="mb-6 flex flex-col sm:flex-row gap-3">
         <input
           type="text"
@@ -82,8 +105,11 @@ export default function CoursesPage() {
         </div>
       </div>
 
-      {/* Course Grid */}
-      {filtered.length === 0 ? (
+      {loading ? (
+        <div className="text-center p-10 text-gray-500">
+          Loading courses...
+        </div>
+      ) : filtered.length === 0 ? (
         <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-16 text-center">
           <p className="text-gray-500 dark:text-gray-400">
             No courses found. Try a different search or category.
@@ -97,7 +123,6 @@ export default function CoursesPage() {
               to={`/courses/${course.id}`}
               className="group rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden hover:shadow-lg transition-shadow"
             >
-              {/* Optional image fallback */}
               <img
                 src={
                   course.image ||
@@ -133,7 +158,6 @@ export default function CoursesPage() {
                   </span>
                 </div>
 
-                {/* Optional extra */}
                 {course.createdBy && (
                   <div className="mt-2 text-xs text-gray-400">
                     By: {course.createdBy.name}

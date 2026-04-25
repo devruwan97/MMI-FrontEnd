@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import PageMeta from "../../components/common/PageMeta";
+import { getAuthHeaders } from "../../api/Api";
 
 export default function AddCoursePage() {
   const navigate = useNavigate();
@@ -23,6 +24,14 @@ export default function AddCoursePage() {
   const handleSubmit = async (e: any) => {
     e.preventDefault();
 
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      alert("You are not logged in. Please login first.");
+      navigate("/signin");
+      return;
+    }
+
     const payload = {
       title: form.title,
       description: form.description,
@@ -33,28 +42,28 @@ export default function AddCoursePage() {
 
     try {
       const res = await fetch(
-        "http://localhost:8080/api/courses/user/1", // ⚠️ temporary
+        "http://localhost:8080/api/courses/user/1",
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: getAuthHeaders(),
           body: JSON.stringify(payload),
         }
       );
+
+      if (res.status === 403) {
+        throw new Error("Unauthorized (403). Check your token or role.");
+      }
 
       if (!res.ok) {
         throw new Error("Failed to create course");
       }
 
       alert("Course created successfully");
-
-      // ✅ redirect back
       navigate("/courses");
 
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      alert("Error creating course");
+      alert(err.message || "Error creating course");
     }
   };
 

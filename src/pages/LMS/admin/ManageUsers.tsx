@@ -4,7 +4,7 @@ import PageMeta from "../../../components/common/PageMeta";
 
 interface User {
   id: string | number;
-  _id?: string | number; // Added to support backends using _id
+  _id?: string | number;
   name?: string;
   email?: string;
   role?: string;
@@ -20,7 +20,7 @@ export default function ManageUsersPage() {
   const [roleFilter, setRoleFilter] = useState("All");
 
   useEffect(() => {
-    const token = localStorage.getItem("token"); // Assuming tokens are stored here
+    const token = localStorage.getItem("token");
 
     fetch("http://localhost:8080/api/users", {
       headers: {
@@ -33,7 +33,7 @@ export default function ManageUsersPage() {
       })
       .then((data) => {
         console.log("User Data Received:", data);
-        // Handle cases where API returns { users: [] } instead of []
+
         const usersList = Array.isArray(data) ? data : data.users || [];
         setUsers(usersList);
         setIsLoading(false);
@@ -89,7 +89,6 @@ export default function ManageUsersPage() {
       (u.name?.toLowerCase().includes(search.toLowerCase()) ?? false) ||
       (u.email?.toLowerCase().includes(search.toLowerCase()) ?? false);
     
-    // Case-insensitive role comparison
     const matchesRole = roleFilter === "All" || u.role?.toLowerCase() === roleFilter.toLowerCase();
     
     return matchesSearch && matchesRole;
@@ -108,7 +107,6 @@ export default function ManageUsersPage() {
         </div>
       </div>
 
-      {/* Filters */}
       <div className="mb-6 flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1">
           <input
@@ -130,7 +128,6 @@ export default function ManageUsersPage() {
         </select>
       </div>
 
-      {/* Users Table */}
       <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left">

@@ -27,7 +27,6 @@ export default function ManagementPage() {
         <p className="text-gray-500 dark:text-gray-400 mt-1">Manage all courses, teachers, students and enrollments</p>
       </div>
 
-      {/* Tabs */}
       <div className="mb-6 flex gap-2 border-b border-gray-200 dark:border-gray-800">
         {tabs.map((t) => (
           <button
@@ -47,7 +46,6 @@ export default function ManagementPage() {
         ))}
       </div>
 
-      {/* Courses Tab */}
       {tab === "courses" && (
         <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden">
           <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-gray-800">
@@ -84,7 +82,6 @@ export default function ManagementPage() {
         </div>
       )}
 
-      {/* Teachers Tab */}
       {tab === "teachers" && (
         <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden">
           <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-gray-800">
@@ -131,7 +128,6 @@ export default function ManagementPage() {
         </div>
       )}
 
-      {/* Students Tab */}
       {tab === "students" && (
         <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden">
           <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-gray-800">
@@ -172,7 +168,6 @@ export default function ManagementPage() {
         </div>
       )}
 
-      {/* Enrollments Tab */}
       {tab === "enrollments" && (
         <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden">
           <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-gray-800">

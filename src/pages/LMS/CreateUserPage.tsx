@@ -10,13 +10,23 @@ export default function CreateUserPage() {
     email: "",
     passwordHash: "",
     role: "student",
-    phone: ""
+    phone: "",
+
+    dateOfBirth: "",
+    parentName: "",
+    address: "",
+
+    qualifications: "",
+    bio: "",
   });
 
   const [loading, setLoading] = useState(false);
 
-  // ✅ FIXED: safe state update (no stale state issue)
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >
+  ) => {
     const { name, value } = e.target;
 
     setForm((prev) => ({
@@ -29,24 +39,77 @@ export default function CreateUserPage() {
     e.preventDefault();
     setLoading(true);
 
-    try {
-      const token = localStorage.getItem("token");
+    const token = localStorage.getItem("token");
 
-      const res = await fetch("http://localhost:8080/api/auth/register", {
+    try {
+      const userRes = await fetch("http://localhost:8080/api/auth/register", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`, // IMPORTANT FIX
+          ...(token && { Authorization: `Bearer ${token}` }),
         },
-        body: JSON.stringify(form),
+        body: JSON.stringify({
+          name: form.name,
+          email: form.email,
+          passwordHash: form.passwordHash,
+          role: form.role,
+          phone: form.phone,
+        }),
       });
 
-      if (!res.ok) {
-        throw new Error("Failed to create user");
+      if (!userRes.ok) throw new Error("User creation failed");
+
+      const userData = await userRes.json();
+      const userId = userData.id;
+
+      if (form.role === "student") {
+        const studentRes = await fetch(
+          "http://localhost:8080/api/students",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              ...(token && { Authorization: `Bearer ${token}` }),
+            },
+            body: JSON.stringify({
+              userId,
+              dateOfBirth: form.dateOfBirth,
+              parentName: form.parentName,
+              address: form.address,
+            }),
+          }
+        );
+
+        if (!studentRes.ok) {
+          console.error("Student creation failed");
+        }
+      }
+
+      if (form.role === "teacher") {
+        const teacherRes = await fetch(
+          `http://localhost:8080/api/teachers/user/${userId}`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              ...(token && { Authorization: `Bearer ${token}` }),
+            },
+            body: JSON.stringify({
+              qualifications: form.qualifications,
+              bio: form.bio,
+            }),
+          }
+        );
+
+        if (!teacherRes.ok) {
+          const err = await teacherRes.text();
+          console.error("Teacher creation failed:", err);
+        }
       }
 
       alert("User created successfully");
-      navigate("/createUser");
+
+      navigate("/admin/manage-users");
     } catch (err) {
       console.error(err);
       alert("Error creating user");
@@ -64,40 +127,36 @@ export default function CreateUserPage() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
 
-          {/* Name */}
           <input
             name="name"
             placeholder="Name"
-            className="w-full p-2 border rounded"
             value={form.name}
             onChange={handleChange}
+            className="w-full p-2 border rounded"
           />
 
-          {/* Email */}
           <input
             name="email"
             placeholder="Email"
-            className="w-full p-2 border rounded"
             value={form.email}
             onChange={handleChange}
+            className="w-full p-2 border rounded"
           />
 
-          {/* Password */}
           <input
             name="passwordHash"
-            placeholder="Password"
             type="password"
-            className="w-full p-2 border rounded"
+            placeholder="Password"
             value={form.passwordHash}
             onChange={handleChange}
+            className="w-full p-2 border rounded"
           />
 
-          {/* Role */}
           <select
             name="role"
-            className="w-full p-2 border rounded"
             value={form.role}
             onChange={handleChange}
+            className="w-full p-2 border rounded"
           >
             <option value="student">student</option>
             <option value="teacher">teacher</option>
@@ -107,12 +166,59 @@ export default function CreateUserPage() {
           <input
             name="phone"
             placeholder="Phone"
-            className="w-full p-2 border rounded"
             value={form.phone}
             onChange={handleChange}
+            className="w-full p-2 border rounded"
           />
 
-          {/* Submit */}
+          {form.role === "student" && (
+            <>
+              <input
+                name="dateOfBirth"
+                type="date"
+                value={form.dateOfBirth}
+                onChange={handleChange}
+                className="w-full p-2 border rounded"
+              />
+
+              <input
+                name="parentName"
+                placeholder="Parent Name"
+                value={form.parentName}
+                onChange={handleChange}
+                className="w-full p-2 border rounded"
+              />
+
+              <textarea
+                name="address"
+                placeholder="Address"
+                value={form.address}
+                onChange={handleChange}
+                className="w-full p-2 border rounded"
+              />
+            </>
+          )}
+
+          {form.role === "teacher" && (
+            <>
+              <textarea
+                name="qualifications"
+                placeholder="Qualifications"
+                value={form.qualifications}
+                onChange={handleChange}
+                className="w-full p-2 border rounded"
+              />
+
+              <textarea
+                name="bio"
+                placeholder="Bio"
+                value={form.bio}
+                onChange={handleChange}
+                className="w-full p-2 border rounded"
+              />
+            </>
+          )}
+
           <button
             disabled={loading}
             className="w-full bg-brand-500 text-white p-2 rounded"
