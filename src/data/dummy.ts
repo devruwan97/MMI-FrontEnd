@@ -103,7 +103,7 @@ export const students = [
   { id: 3, user_id: 203, name: "Noah Williams", email: "noah.w@mathsmasterylms.com.au", date_of_birth: "2009-11-08", parent_name: "David Williams", address: "78 Elm Road, Brisbane QLD 4000" },
   { id: 4, user_id: 204, name: "Olivia Brown", email: "olivia.b@mathsmasterylms.com.au", date_of_birth: "2010-01-30", parent_name: "Jennifer Brown", address: "23 Maple Drive, Perth WA 6000" },
   { id: 5, user_id: 205, name: "Ethan Davis", email: "ethan.d@mathsmasterylms.com.au", date_of_birth: "2009-06-14", parent_name: "Michael Davis", address: "56 Cedar Lane, Adelaide SA 5000" },
-  { id: 6, user_id: 206, name: "Sophia Martinez", email: "sophia.m@mathsmasterylms.com.au", date_of_birth: "2010-09-05", parent_name: "Carlos Martinez", address: "34 Birch Blvd, Melbourne VIC 3001" },
+  { id: 6, user_id: 206, name: "Sophia Martinez", email: "sophia.m@mathsmasterylms.com.au", date_of_birth: "2010-09-05", parent_name: "Mary Smith", address: "34 Birch Blvd, Melbourne VIC 3001" },
   { id: 7, user_id: 207, name: "Mason Taylor", email: "mason.t@mathsmasterylms.com.au", date_of_birth: "2009-12-19", parent_name: "Susan Taylor", address: "90 Willow Way, Sydney NSW 2001" },
   { id: 8, user_id: 208, name: "Isabella Anderson", email: "isabella.a@mathsmasterylms.com.au", date_of_birth: "2010-04-27", parent_name: "Thomas Anderson", address: "67 Spruce St, Brisbane QLD 4001" },
 ];

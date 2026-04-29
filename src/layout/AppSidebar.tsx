@@ -29,10 +29,28 @@ const navItems: NavItem[] = [
   {
     icon: <TableIcon />,
     name: "Courses",
-    roles: ["admin", "teacher"],
+    roles: ["admin"],
     subItems: [
       { name: "All Courses", path: "/courses" },
       { name: "Add Course", path: "/courses/new" },
+    ],
+  },
+
+  {
+    icon: <TableIcon />,
+    name: "My Courses",
+    roles: ["teacher"],
+    subItems: [
+      { name: "Course List", path: "/teacher/dashboard" },
+    ],
+  },
+
+  {
+    icon: <UserCircleIcon />,
+    name: "Students",
+    roles: ["teacher"],
+    subItems: [
+      { name: "Enrolled Students", path: "/teacher/enrolled-students" },
     ],
   },
 
@@ -76,16 +94,24 @@ const navItems: NavItem[] = [
     subItems: [{ name: "All Enrollments", path: "/admin/enrollments" }],
   },
 
+  {
+    icon: <DollarLineIcon />,
+    name: "Finance",
+    roles: ["admin"],
+    subItems: [{ name: "Payment Details", path: "/admin/payments" }],
+  },
+
   { icon: <PieChartIcon />, name: "Analytics", path: "/admin/analytics", roles: ["admin"] },
 
-  { icon: <DollarLineIcon />, name: "Payments", path: "/payments", roles: ["admin", "teacher", "student"] },
+  { icon: <GroupIcon />, name: "Siblings", path: "/admin/siblings", roles: ["admin"] },
 
-  { icon: <UserCircleIcon />, name: "Profile", path: "/profile", roles: ["teacher"] },
+  { icon: <DollarLineIcon />, name: "Payments", path: "/payments", roles: ["student"] },
 
 
-  { icon: <UserCircleIcon />, name: "About Us", path: "/about", roles: ["admin", "teacher", "student"] },
+ { icon: <CalenderIcon/>, name: "My Schedule", path: "/teacher/schedule", roles: ["teacher"] },
+  { icon: <UserCircleIcon />, name: "About Us", path: "/about", roles: ["admin", "student"] },
 
-  { icon: <MailIcon />, name: "Contact", path: "/contact", roles: ["admin", "teacher", "student"] },
+  { icon: <MailIcon />, name: "Contact", path: "/contact", roles: ["admin", "student"] },
 
   { icon: <CalenderIcon />, name: "Teacher Dashboard", path: "/teacher/dashboard", roles: ["teacher"] },
 ];

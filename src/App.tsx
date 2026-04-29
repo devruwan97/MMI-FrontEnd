@@ -14,9 +14,13 @@ import AboutPage from "./pages/LMS/About";
 import ContactPage from "./pages/LMS/Contact";
 import SchedulePage from "./pages/LMS/Schedule";
 import PaymentsPage from "./pages/LMS/Payments";
+import PaymentSuccessPage from "./pages/LMS/PaymentSuccess";
+import PaymentFailurePage from "./pages/LMS/PaymentFailure";
 import ManagementPage from "./pages/LMS/admin/Management";
 import AnalyticsPage from "./pages/LMS/admin/Analytics";
 import TeacherDashboard from "./pages/LMS/teacher/TeacherDashboard";
+import EnrolledStudentsPage from "./pages/LMS/teacher/EnrolledStudentsPage";
+import TeacherSchedulePage from "./pages/LMS/teacher/TeacherSchedulePage";
 import AddCoursePage from "./pages/LMS/AddCoursePage";
 import MyCoursesPage from "./pages/LMS/student/MyCourses";
 import StudentEnrollmentsPage from "./pages/LMS/student/StudentEnrollments";
@@ -27,6 +31,8 @@ import TeachersPage from "./pages/LMS/admin/Teachers";
 import StudentsPage from "./pages/LMS/admin/Students";
 import AssignCoursesPage from "./pages/LMS/admin/AssignCourses";
 import EnrollmentsPage from "./pages/LMS/admin/Enrollments";
+import Siblings from "./pages/LMS/admin/Siblings";
+import PaymentDetailsPage from "./pages/LMS/admin/PaymentDetails";
 
 export default function App() {
   return (
@@ -118,8 +124,26 @@ export default function App() {
           <Route
             path="/payments"
             element={
-              <ProtectedRoute allowedRoles={["admin", "student", "teacher"]}>
+              <ProtectedRoute allowedRoles={["student"]}>
                 <PaymentsPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/payment-success"
+            element={
+              <ProtectedRoute allowedRoles={["student"]}>
+                <PaymentSuccessPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/payment-failure"
+            element={
+              <ProtectedRoute allowedRoles={["student"]}>
+                <PaymentFailurePage />
               </ProtectedRoute>
             }
           />
@@ -166,6 +190,42 @@ export default function App() {
             element={
               <ProtectedRoute allowedRoles={["admin"]}>
                 <AnalyticsPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/admin/siblings"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <Siblings />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/admin/payments"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <PaymentDetailsPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/teacher/enrolled-students"
+            element={
+              <ProtectedRoute allowedRoles={["teacher"]}>
+                <EnrolledStudentsPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/teacher/schedule"
+            element={
+              <ProtectedRoute allowedRoles={["teacher"]}>
+                <TeacherSchedulePage />
               </ProtectedRoute>
             }
           />
