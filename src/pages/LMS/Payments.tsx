@@ -19,38 +19,37 @@ export default function PaymentsPage() {
     cvv: ""
   });
 
-  // Mocking student ID 2 (Ava Smith) - in a production app, this should come from your Auth session/context
-  const currentStudentId = 2;
+  const currentStudentId = Number(localStorage.getItem("userId"));
 
-  useEffect(() => {
-    const fetchData = async () => {
-      const token = localStorage.getItem("token");
-      const headers = {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      };
+useEffect(() => {
+  const fetchData = async () => {
+    const token = localStorage.getItem("token");
 
-      try {
-        const [pRes, dRes, cRes, siRes] = await Promise.all([
-          fetch("http://localhost:8080/api/payments", { headers }),
-          fetch("http://localhost:8080/api/discounts", { headers }),
-          fetch("http://localhost:8080/api/courses", { headers }),
-          fetch(`http://localhost:8080/api/siblings/student/${currentStudentId}`, { headers }),
-        ]);
-
-        if (pRes.ok) setPayments(await pRes.json());
-        if (dRes.ok) setDiscounts(await dRes.json());
-        if (cRes.ok) setCourses(await cRes.json());
-        if (siRes.ok) setSiblingGroup(await siRes.json());
-      } catch (err) {
-        console.error("Error loading payment data from API:", err);
-      } finally {
-        setLoading(false);
-      }
+    const headers = {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
     };
 
-    fetchData();
-  }, [currentStudentId]);
+    try {
+      const [pRes, cRes, siRes] = await Promise.all([
+        fetch(`http://localhost:8080/api/payments/student/${currentStudentId}`, { headers }),
+        fetch("http://localhost:8080/api/courses", { headers }),
+        fetch(`http://localhost:8080/api/siblings/student/${currentStudentId}`, { headers }),
+      ]);
+
+      if (pRes.ok) setPayments(await pRes.json());
+      if (cRes.ok) setCourses(await cRes.json());
+      if (siRes.ok) setSiblingGroup(await siRes.json());
+
+    } catch (err) {
+      console.error("Error loading payment data:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchData();
+}, [currentStudentId]);
 
   const mySiblings = useMemo(() => 
     siblingGroup?.siblings?.filter((s: any) => s.id !== currentStudentId) || []
@@ -61,7 +60,6 @@ export default function PaymentsPage() {
     payments.filter((p) => p.student_id === currentStudentId)
   , [payments, currentStudentId]);
 
-  // Card type detection logic
   const cardType = useMemo(() => {
     const num = cardDetails.number.replace(/\s+/g, '');
     if (num.startsWith('4')) return "visa";
@@ -84,7 +82,6 @@ export default function PaymentsPage() {
   const getCourseName = (enrollmentId: number) => {
     const p = payments.find((pay) => pay.enrollment_id === enrollmentId);
     if (!p) return "—";
-    // just use the course fee lookup via enrollment to identify course
     return courses.find((c) => c.fee === p.amount)?.title ?? `Enrollment #${enrollmentId}`;
   };
 
@@ -101,28 +98,59 @@ export default function PaymentsPage() {
     );
   };
 
-  const handleManualPayment = () => {
-    if (!manualCourse) return;
-    
-    // Basic validation
-    const isCardValid = /^\d{4}\s\d{4}\s\d{4}\s\d{4}$/.test(cardDetails.number);
-    const isExpiryValid = /^\d{2}\/\d{2}$/.test(cardDetails.expiry);
-    const isCvvValid = /^\d{3}$/.test(cardDetails.cvv);
+const handleManualPayment = async () => {
+  if (!manualCourse) return;
 
-    if (!isCardValid || !isExpiryValid || !isCvvValid) {
-      alert("Invalid card details. Please check the format (XXXX XXXX XXXX XXXX, MM/YY, XXX).");
-      return;
+  const token = localStorage.getItem("token");
+
+  const isCardValid = /^\d{4}\s\d{4}\s\d{4}\s\d{4}$/.test(cardDetails.number);
+  const isExpiryValid = /^\d{2}\/\d{2}$/.test(cardDetails.expiry);
+  const isCvvValid = /^\d{3}$/.test(cardDetails.cvv);
+
+  if (!isCardValid || !isExpiryValid || !isCvvValid) {
+    alert("Invalid card details.");
+    return;
+  }
+
+  try {
+    const enrollmentId = 1;
+
+    const res = await fetch("http://localhost:8080/api/payments", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+      body: JSON.stringify({
+        studentId: currentStudentId,
+        enrollmentId: enrollmentId,
+        amount: manualCourse.fee,
+        discountApplied: hasSiblings ? manualDiscount : 0,
+      }),
+    });
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      throw new Error(errorText || "Payment creation failed");
     }
 
-    // Simulate Payment Verification
-    // Let's assume '4242 4242 4242 4242' is a test card for failure
-    if (cardDetails.number === "4242 4242 4242 4242") {
-      navigate("/payment-failure");
-    } else {
-      // On success, redirect to success page
-      navigate("/payment-success");
-    }
-  };
+    const newPayment = await res.json();
+
+    setPayments((prev) => [...prev, newPayment]);
+
+    setShowManualForm(false);
+    setSelectedCourseId("");
+    setCardDetails({ number: "", expiry: "", cvv: "" });
+
+    navigate("/payment-success");
+
+  } catch (err) {
+    console.error("Payment error:", err);
+    alert("Payment failed");
+    navigate("/payment-failure");
+  }
+};
+
 
   const statusStyles: Record<string, string> = {
     paid: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",

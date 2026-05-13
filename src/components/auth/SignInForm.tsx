@@ -25,7 +25,9 @@ export default function SignInForm() {
     const newErrors: typeof errors = {};
 
     if (!email.trim()) newErrors.email = "Email is required";
-    else if (!/^[^@ \s]+@[^@ \s]+\.[^@ \s]+$/.test(email)) newErrors.email = "Invalid email format";
+    else if (!/^[^@ \s]+@[^@ \s]+\.[^@ \s]+$/.test(email))
+      newErrors.email = "Invalid email format";
+
     if (!password) newErrors.password = "Password is required";
 
     if (Object.keys(newErrors).length > 0) {
@@ -57,11 +59,25 @@ export default function SignInForm() {
       localStorage.setItem("token", data.token);
       localStorage.setItem("role", data.role);
       localStorage.setItem("email", email);
+      localStorage.setItem("userId", data.UserId);
 
       console.log("Login success:", { ...data, rememberMe: isChecked });
 
       setLoading(false);
-      navigate("/");
+
+      // ✅ ROLE BASED DASHBOARD REDIRECT (ADDED ONLY THIS)
+      const role = data.role;
+
+      if (role === "admin") {
+        navigate("/admin");
+      } else if (role === "teacher") {
+        navigate("/teacher");
+      } else if (role === "student") {
+        navigate("/student");
+      } else {
+        navigate("/");
+      }
+
     } catch (err: unknown) {
       setLoading(false);
       setModalMessage(err instanceof Error ? err.message : "Login failed");
@@ -92,7 +108,7 @@ export default function SignInForm() {
               <Label>
                 Email <span className="text-error-500">*</span>
               </Label>
-              <Input 
+              <Input
                 type="email"
                 name="email"
                 value={formData.email}
@@ -133,15 +149,16 @@ export default function SignInForm() {
 
             <div className="flex items-center justify-between">
               <div className="flex items-center">
-                <Checkbox 
+                <Checkbox
                   id="remember"
-                  checked={isChecked} 
+                  checked={isChecked}
                   onChange={setIsChecked}
                 />
                 <span className="block font-normal text-gray-700 text-theme-sm dark:text-gray-400 pl-3">
                   Keep me logged in
                 </span>
               </div>
+
               <Link
                 to="/reset-password"
                 className="text-sm text-brand-500 hover:text-brand-600 dark:text-brand-400"
@@ -157,15 +174,39 @@ export default function SignInForm() {
         </form>
       </div>
 
-      <Modal isOpen={isOpen} onClose={closeModal} className="max-w-[400px] p-6 text-center">
+      <Modal
+        isOpen={isOpen}
+        onClose={closeModal}
+        className="max-w-[400px] p-6 text-center"
+      >
         <div className="flex flex-col items-center">
           <div className="flex items-center justify-center w-12 h-12 mb-4 bg-error-100 rounded-full dark:bg-error-500/10">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-error-500">
-              <path d="M12 8V12M12 16H12.01M22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              className="text-error-500"
+            >
+              <path
+                d="M12 8V12M12 16H12.01M22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12Z"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
             </svg>
           </div>
-          <h3 className="mb-2 text-lg font-semibold text-gray-800 dark:text-white/90">Login Failed</h3>
-          <p className="mb-6 text-sm text-gray-500 dark:text-gray-400">{modalMessage}</p>
+
+          <h3 className="mb-2 text-lg font-semibold text-gray-800 dark:text-white/90">
+            Login Failed
+          </h3>
+
+          <p className="mb-6 text-sm text-gray-500 dark:text-gray-400">
+            {modalMessage}
+          </p>
+
           <Button onClick={closeModal} className="w-full" size="sm">
             Try Again
           </Button>

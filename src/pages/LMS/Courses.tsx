@@ -125,8 +125,7 @@ export default function CoursesPage() {
             >
               <img
                 src={
-                  course.image ||
-                  "https://via.placeholder.com/400x200?text=Course"
+                  "https://info.ehl.edu/hubfs/Blog-EHL-Insights/Blog-Header-EHL-Insights/e_learning_course.jpg"
                 }
                 alt={course.title}
                 className="h-44 w-full object-cover group-hover:opacity-90 transition-opacity"

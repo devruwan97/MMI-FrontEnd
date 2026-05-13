@@ -1,160 +1,238 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import PageMeta from "../../../components/common/PageMeta";
-import { courses, schedules, enrollments, students } from "../../../data/dummy";
 
-// Simulating logged-in teacher #1 (Dr. Sarah Mitchell)
-const TEACHER_ID = 1;
-const TEACHER_NAME = "Dr. Sarah Mitchell";
+type Tab = "courses";
 
-type Tab = "courses" | "schedule" | "students";
+interface Teacher {
+  id: number;
+  userId: number;
+  name: string;
+  email: string;
+  bio: string;
+  qualifications: string;
+  role: string;
+  createdAt: string;
+}
+
+interface Course {
+  id: number;
+  title: string;
+  description: string;
+  category: string;
+  capacity: number;
+  fee: number;
+}
 
 export default function TeacherDashboard() {
   const [tab, setTab] = useState<Tab>("courses");
+  const [teacher, setTeacher] = useState<Teacher | null>(null);
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const myCourses = courses.filter((c) => c.created_by === TEACHER_ID);
-  const mySchedules = schedules.filter((s) => s.teacher_id === TEACHER_ID);
-  const myCourseIds = myCourses.map((c) => c.id);
-  const myEnrollments = enrollments.filter((e) => myCourseIds.includes(e.course_id) && e.status === "active");
+  const teacherId = localStorage.getItem("userId");
+  const token = localStorage.getItem("token");
 
-  const myStudentIds = [...new Set(myEnrollments.map((e) => e.student_id))];
-  const myStudents = students.filter((s) => myStudentIds.includes(s.id));
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
 
-  const dayOrder = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+        // =========================
+        // FETCH TEACHER PROFILE
+        // =========================
+        const teacherRes = await fetch(
+          `http://localhost:8080/api/teachers/${teacherId}`,
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (!teacherRes.ok) {
+          throw new Error("Failed to fetch teacher profile");
+        }
+
+        const teacherData = await teacherRes.json();
+
+        const mappedTeacher: Teacher = {
+          id: teacherData.id,
+          userId: teacherData.userId,
+          name: teacherData.name,
+          email: teacherData.email,
+          bio: teacherData.bio,
+          qualifications: teacherData.qualifications,
+          role: teacherData.role,
+          createdAt: teacherData.createdAt,
+        };
+
+        setTeacher(mappedTeacher);
+
+        // =========================
+        // FETCH COURSES
+        // =========================
+        const courseRes = await fetch(
+          `http://localhost:8080/api/teachers/${teacherId}/schedule/courses`,
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (!courseRes.ok) {
+          throw new Error("Failed to fetch teacher courses");
+        }
+
+        const courseData = await courseRes.json();
+
+        setCourses(Array.isArray(courseData) ? courseData : []);
+      } catch (err: any) {
+        console.error(err);
+        setError(err.message || "Something went wrong");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (teacherId) {
+      fetchData();
+    }
+  }, [teacherId, token]);
+
+  // ========================= LOADING =========================
+  if (loading) {
+    return (
+      <div className="p-10 text-center text-gray-500">
+        Loading teacher dashboard...
+      </div>
+    );
+  }
+
+  // ========================= ERROR =========================
+  if (error) {
+    return (
+      <div className="p-10 text-center text-red-500">
+        {error}
+      </div>
+    );
+  }
 
   return (
     <>
-      <PageMeta title="Teacher Dashboard | LMS" description="Teacher portal" />
+      <PageMeta
+        title="Teacher Dashboard | LMS"
+        description="Teacher portal"
+      />
 
-      {/* Header */}
+      {/* ================= HEADER ================= */}
       <div className="mb-6 rounded-2xl bg-gradient-to-r from-green-500 to-teal-600 p-6 text-white">
-        <p className="text-green-100 text-sm">Welcome back,</p>
-        <h1 className="text-2xl font-bold mt-0.5">{TEACHER_NAME}</h1>
-        <div className="mt-3 flex gap-4 text-sm">
-          <span className="bg-white/20 rounded-lg px-3 py-1">{myCourses.length} Courses</span>
-          <span className="bg-white/20 rounded-lg px-3 py-1">{mySchedules.length} Sessions/week</span>
-          <span className="bg-white/20 rounded-lg px-3 py-1">{myStudents.length} Students</span>
+        <p className="text-green-100 text-sm">
+          Welcome back,
+        </p>
+
+        <h1 className="text-2xl font-bold mt-0.5">
+          {teacher?.name}
+        </h1>
+
+        <p className="text-sm text-green-100 mt-1">
+          {teacher?.email}
+        </p>
+
+        <div className="mt-3 flex gap-4 text-sm flex-wrap">
+          <span className="bg-white/20 rounded-lg px-3 py-1">
+            {courses.length} Courses
+          </span>
+
+          <span className="bg-white/20 rounded-lg px-3 py-1">
+            {teacher?.qualifications}
+          </span>
+
+          <span className="bg-white/20 rounded-lg px-3 py-1">
+            Teacher Portal
+          </span>
         </div>
       </div>
 
-      {/* Tabs */}
+      {/* ================= TABS ================= */}
       <div className="mb-6 flex gap-2 border-b border-gray-200 dark:border-gray-800">
-        {(["courses", "schedule", "students"] as Tab[]).map((t) => (
-          <button
-            key={t}
-            onClick={() => setTab(t)}
-            className={`pb-3 px-4 text-sm font-medium capitalize transition-colors border-b-2 -mb-px ${
-              tab === t ? "border-brand-500 text-brand-600 dark:text-brand-400" : "border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
-            }`}
-          >
-            {t} ({t === "courses" ? myCourses.length : t === "schedule" ? mySchedules.length : myStudents.length})
-          </button>
-        ))}
+        <button
+          onClick={() => setTab("courses")}
+          className={`pb-3 px-4 text-sm font-medium border-b-2 transition ${
+            tab === "courses"
+              ? "border-brand-500 text-brand-600"
+              : "border-transparent text-gray-500"
+          }`}
+        >
+          Courses ({courses.length})
+        </button>
       </div>
 
-      {/* My Courses */}
+      {/* ================= COURSES GRID ================= */}
       {tab === "courses" && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {myCourses.map((c) => {
-            const enrolled = enrollments.filter((e) => e.course_id === c.id && e.status === "active").length;
-            return (
-              <div key={c.id} className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden">
-                <img src={c.image} alt={c.title} className="h-36 w-full object-cover" />
-                <div className="p-4">
-                  <span className="text-xs bg-brand-50 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400 px-2 py-0.5 rounded-full">{c.category}</span>
-                  <h3 className="mt-2 font-semibold text-gray-800 dark:text-white">{c.title}</h3>
-                  <p className="mt-2 text-sm text-gray-500 dark:text-gray-400 line-clamp-2">{c.description}</p>
-                  <div className="mt-3 flex items-center justify-between text-sm">
-                    <span className="text-gray-500 dark:text-gray-400">{enrolled}/{c.capacity} enrolled</span>
-                    <span className="text-gray-500 dark:text-gray-400">{c.units.length} units</span>
-                  </div>
-                  {/* Capacity bar */}
-                  <div className="mt-2 h-1.5 rounded-full bg-gray-100 dark:bg-gray-800">
-                    <div className="h-1.5 rounded-full bg-brand-500" style={{ width: `${(enrolled / c.capacity) * 100}%` }} />
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
+        <>
+          {courses.length === 0 ? (
+            <div className="text-center text-gray-500 py-10">
+              No courses assigned yet
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+              {courses.map((course) => (
+                <Link
+                  key={course.id}
+                  to={`/teacher/courses/${course.id}/units`}
+                  className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-200 block"
+                >
+                  {/* COURSE IMAGE */}
+                  <img
+                    src="https://info.ehl.edu/hubfs/Blog-EHL-Insights/Blog-Header-EHL-Insights/e_learning_course.jpg"
+                    alt={course.title}
+                    className="h-36 w-full object-cover"
+                  />
 
-      {/* Schedule */}
-      {tab === "schedule" && (
-        <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-gray-50 dark:bg-gray-800">
-                <tr>
-                  {["Day", "Course", "Time", "Location"].map((h) => (
-                    <th key={h} className="px-5 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-                {[...mySchedules]
-                  .sort((a, b) => dayOrder.indexOf(a.day_of_week) - dayOrder.indexOf(b.day_of_week))
-                  .map((s) => {
-                    const course = courses.find((c) => c.id === s.course_id);
-                    return (
-                      <tr key={s.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
-                        <td className="px-5 py-4 font-medium text-gray-700 dark:text-gray-200">{s.day_of_week}</td>
-                        <td className="px-5 py-4 text-gray-600 dark:text-gray-300">{course?.title ?? "—"}</td>
-                        <td className="px-5 py-4 text-gray-600 dark:text-gray-300">{s.start_time} – {s.end_time}</td>
-                        <td className="px-5 py-4 text-brand-500">{s.location}</td>
-                      </tr>
-                    );
-                  })}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
+                  {/* COURSE CONTENT */}
+                  <div className="p-4">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs bg-brand-50 text-brand-600 px-2 py-0.5 rounded-full">
+                        {course.category}
+                      </span>
 
-      {/* Students */}
-      {tab === "students" && (
-        <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden">
-          <div className="p-4 border-b border-gray-100 dark:border-gray-800">
-            <p className="text-sm text-gray-500 dark:text-gray-400">{myStudents.length} active students across your courses</p>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-gray-50 dark:bg-gray-800">
-                <tr>
-                  {["Student", "Email", "Enrolled In", "Status"].map((h) => (
-                    <th key={h} className="px-5 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-                {myStudents.map((s) => {
-                  const studentEnrollments = myEnrollments.filter((e) => e.student_id === s.id);
-                  const enrolledCourses = studentEnrollments.map((e) => courses.find((c) => c.id === e.course_id)?.title).filter(Boolean);
-                  return (
-                    <tr key={s.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
-                      <td className="px-5 py-4">
-                        <div className="flex items-center gap-2">
-                          <div className="h-8 w-8 rounded-full bg-teal-500 flex items-center justify-center text-white text-xs font-bold">{s.name.charAt(0)}</div>
-                          <span className="font-medium text-gray-800 dark:text-white">{s.name}</span>
-                        </div>
-                      </td>
-                      <td className="px-5 py-4 text-gray-500 dark:text-gray-400 text-xs">{s.email}</td>
-                      <td className="px-5 py-4">
-                        <div className="flex flex-wrap gap-1">
-                          {enrolledCourses.map((title) => (
-                            <span key={title} className="text-xs bg-brand-50 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400 px-2 py-0.5 rounded-full">{title}</span>
-                          ))}
-                        </div>
-                      </td>
-                      <td className="px-5 py-4">
-                        <span className="text-xs bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 px-2 py-0.5 rounded-full font-medium">Active</span>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </div>
+                      <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-md bg-green-100 text-green-700">
+                        Active
+                      </span>
+                    </div>
+
+                    <h3 className="mt-3 font-semibold text-gray-800 dark:text-white">
+                      {course.title}
+                    </h3>
+
+                    <p className="mt-2 text-sm text-gray-500 line-clamp-2">
+                      {course.description}
+                    </p>
+
+                    <div className="mt-4 flex items-center justify-between text-sm">
+                      <span className="text-gray-500">
+                        Capacity: {course.capacity}
+                      </span>
+
+                      <span className="text-brand-500 font-semibold">
+                        ${course.fee}
+                      </span>
+                    </div>
+
+                    <div className="mt-4 text-sm font-semibold text-brand-500">
+                      Open Units →
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
+        </>
       )}
     </>
   );

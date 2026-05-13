@@ -33,6 +33,17 @@ import AssignCoursesPage from "./pages/LMS/admin/AssignCourses";
 import EnrollmentsPage from "./pages/LMS/admin/Enrollments";
 import Siblings from "./pages/LMS/admin/Siblings";
 import PaymentDetailsPage from "./pages/LMS/admin/PaymentDetails";
+import MyUnits from "./pages/LMS/student/MyUnitsPage";
+import UnitDetailsPage from "./pages/LMS/student/UnitDetailsPage";
+import TeacherUnitsPage from  "./pages/LMS/teacher/TeacherUnitsPage";
+import TeacherSubmissionsCoursesPage from "./pages/LMS/teacher/submissions/TeacherSubmissionsCoursesPage";
+import TeacherSubmissionsUnitsPage from "./pages/LMS/teacher/submissions/TeacherSubmissionsUnitsPage";
+import TeacherSubmissionsAssessmentsPage from "./pages/LMS/teacher/submissions/TeacherSubmissionsAssessmentsPage";
+import TeacherSubmissionsListPage from "./pages/LMS/teacher/submissions/TeacherSubmissionsListPage";
+import AdminDashboard from "./pages/Dashboard/AdminDashboard";
+import TeacherDashboardHome from "./pages/Dashboard/TeacherDashboardHome";
+import StudentDashboard from "./pages/Dashboard/StudentDashboard";
+
 
 export default function App() {
   return (
@@ -184,7 +195,7 @@ export default function App() {
             }
           />
 
-          
+
           <Route
             path="/admin/analytics"
             element={
@@ -238,6 +249,61 @@ export default function App() {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/student/enrollments/myUnits/:courseId"
+            element={
+              <ProtectedRoute allowedRoles={["student"]}>
+                <MyUnits />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/courses/:courseId/units/:unitId"
+            element={<UnitDetailsPage />}
+          />
+          <Route
+            path="/teacher/courses/:courseId/units"
+            element={<TeacherUnitsPage />}
+/>
+{/* SUBMISSIONS FLOW */}
+<Route
+  path="/teacher/submissions"
+  element={
+    <ProtectedRoute allowedRoles={["teacher"]}>
+      <TeacherSubmissionsCoursesPage />
+    </ProtectedRoute>
+  }
+/>
+
+<Route
+  path="/teacher/submissions/:courseId/units"
+  element={
+    <ProtectedRoute allowedRoles={["teacher"]}>
+      <TeacherSubmissionsUnitsPage />
+    </ProtectedRoute>
+  }
+/>
+
+<Route
+  path="/teacher/submissions/:courseId/units/:unitId/assessments"
+  element={
+    <ProtectedRoute allowedRoles={["teacher"]}>
+      <TeacherSubmissionsAssessmentsPage />
+    </ProtectedRoute>
+  }
+/>
+
+<Route
+  path="/teacher/submissions/:courseId/units/:unitId/assessments/:assessmentId/submissions"
+  element={
+    <ProtectedRoute allowedRoles={["teacher"]}>
+      <TeacherSubmissionsListPage />
+    </ProtectedRoute>
+  }
+/>
+<Route path="/admin" element={<AdminDashboard />} />
+<Route path="/teacher" element={<TeacherDashboardHome />} />
+<Route path="/student" element={<StudentDashboard />} />
         </Route>
 
         <Route path="/signin" element={<SignIn />} />

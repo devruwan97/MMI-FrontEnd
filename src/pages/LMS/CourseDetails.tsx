@@ -11,6 +11,11 @@ export default function CourseDetails() {
 
   const getToken = () => localStorage.getItem("token");
 
+  const userRole = localStorage.getItem("role");
+  const isAdmin = userRole === "admin";
+
+  const studentId = localStorage.getItem("userId"); // 👈 student id from localStorage
+
   useEffect(() => {
     const fetchCourse = async () => {
       try {
@@ -45,6 +50,48 @@ export default function CourseDetails() {
     fetchCourse();
   }, [id]);
 
+  // ---------------- ENROLL STUDENT ----------------
+  const handleEnroll = async () => {
+    try {
+      if (!studentId) {
+        alert("Please login first");
+        return;
+      }
+
+      const res = await fetch(
+        "http://localhost:8080/api/enrollments",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${getToken()}`,
+          },
+          body: JSON.stringify({
+            studentId: Number(studentId),
+            courseId: Number(course.id),
+          }),
+        }
+      );
+
+      if (res.status === 401 || res.status === 403) {
+        throw new Error("Unauthorized - please login again");
+      }
+
+      if (!res.ok) {
+        throw new Error("Enrollment failed");
+      }
+
+      const data = await res.json();
+      console.log("Enrollment success:", data);
+
+      alert("Successfully enrolled in course!");
+    } catch (err) {
+      console.error("Enrollment error:", err);
+      alert("Failed to enroll in course");
+    }
+  };
+
+  // ---------------- DELETE COURSE (ADMIN) ----------------
   const handleDelete = async () => {
     const confirmDelete = window.confirm(
       "Are you sure you want to delete this course?"
@@ -119,10 +166,7 @@ export default function CourseDetails() {
 
       <div className="rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-800 mb-6">
         <img
-          src={
-            course.image ||
-            "https://via.placeholder.com/800x300?text=Course"
-          }
+          src="https://info.ehl.edu/hubfs/Blog-EHL-Insights/Blog-Header-EHL-Insights/e_learning_course.jpg"
           alt={course.title}
           className="h-56 w-full object-cover"
         />
@@ -147,9 +191,14 @@ export default function CourseDetails() {
               <p className="text-3xl font-bold text-brand-600">
                 ${course.fee}
               </p>
+
               <p className="text-xs text-gray-400">per term</p>
 
-              <button className="mt-3 w-full rounded-lg bg-brand-500 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-600">
+              {/* ---------------- ENROLL BUTTON ---------------- */}
+              <button
+                onClick={handleEnroll}
+                className="mt-3 w-full rounded-lg bg-brand-500 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-600"
+              >
                 Enrol Now
               </button>
 
@@ -157,23 +206,26 @@ export default function CourseDetails() {
                 Capacity: {course.capacity}
               </p>
 
-              <div className="mt-3 flex flex-col gap-2">
-                <button
-                  onClick={() =>
-                    navigate(`/courses/edit/${course.id}`)
-                  }
-                  className="w-full rounded-lg bg-blue-500 px-3 py-1 text-xs text-white hover:bg-blue-600"
-                >
-                  Edit Course
-                </button>
+              {/* ---------------- ADMIN CONTROLS ---------------- */}
+              {isAdmin && (
+                <div className="mt-3 flex flex-col gap-2">
+                  <button
+                    onClick={() =>
+                      navigate(`/courses/edit/${course.id}`)
+                    }
+                    className="w-full rounded-lg bg-blue-500 px-3 py-1 text-xs text-white hover:bg-blue-600"
+                  >
+                    Edit Course
+                  </button>
 
-                <button
-                  onClick={handleDelete}
-                  className="w-full rounded-lg bg-red-500 px-3 py-1 text-xs text-white hover:bg-red-600"
-                >
-                  Delete Course
-                </button>
-              </div>
+                  <button
+                    onClick={handleDelete}
+                    className="w-full rounded-lg bg-red-500 px-3 py-1 text-xs text-white hover:bg-red-600"
+                  >
+                    Delete Course
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
