@@ -31,11 +31,12 @@ export default function TeacherSubmissionsAssessmentsPage() {
 
         const data = await res.json();
 
-        // Backend → DTO mapping
         const formatted = (data.assessments || []).map((a: any) => ({
           id: a.id,
           title: a.assessmentName,
-          type: a.assessmentCode?.includes("Q") ? "Quiz" : "Assignment",
+          type: a.assessmentCode?.includes("Q")
+            ? "Quiz"
+            : "Assignment",
         }));
 
         setAssessments(formatted);
@@ -90,48 +91,51 @@ export default function TeacherSubmissionsAssessmentsPage() {
         </p>
       </div>
 
-      {/* EMPTY STATE */}
-      {assessments.length === 0 ? (
-        <div className="text-center text-gray-500 py-10">
-          No assessments found
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {assessments.map((a) => (
-            <Link
-              key={a.id}
-              to={`/teacher/submissions/${courseId}/units/${unitId}/assessments/${a.id}/submissions`}
-              className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-200 block"
-            >
-              {/* CARD HEADER */}
-              <div className="h-24 bg-gradient-to-r from-blue-500 to-indigo-600 flex items-center justify-center text-white text-lg font-bold">
-                {a.type || "Assessment"}
-              </div>
+      {/* GRID */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
 
-              {/* CARD BODY */}
-              <div className="p-4">
-                <h2 className="font-semibold text-gray-800 dark:text-white">
-                  {a.title}
-                </h2>
+        {/* ================= FINAL GRADES TILE (NEW) ================= */}
+        <Link
+          to={`/teacher/submissions/${courseId}/units/${unitId}/final-grades`}
+          className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-200 block"
+        >
+          <div className="h-24 bg-gradient-to-r from-emerald-500 to-teal-600 flex items-center justify-center text-white text-lg font-bold">
+            Final Grades
+          </div>
 
-                <p className="mt-2 text-sm text-gray-500">
-                  Click to view student submissions
-                </p>
+          <div className="p-4">
+            <h2 className="font-semibold text-gray-800 dark:text-white">
+              Unit Final Grades
+            </h2>
 
-                <div className="mt-4 flex items-center justify-between">
-                  <span className="text-xs bg-blue-50 text-blue-600 px-2 py-1 rounded-full">
-                    Active
-                  </span>
+            <p className="mt-2 text-sm text-gray-500">
+              View overall student performance across all assessments
+            </p>
+          </div>
+        </Link>
 
-                  <span className="text-sm font-semibold text-blue-500">
-                    Open →
-                  </span>
-                </div>
-              </div>
-            </Link>
-          ))}
-        </div>
-      )}
+        {assessments.map((a) => (
+          <Link
+            key={a.id}
+            to={`/teacher/submissions/${courseId}/units/${unitId}/assessments/${a.id}/submissions`}
+            className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-200 block"
+          >
+            <div className="h-24 bg-gradient-to-r from-blue-500 to-indigo-600 flex items-center justify-center text-white text-lg font-bold">
+              {a.type || "Assessment"}
+            </div>
+
+            <div className="p-4">
+              <h2 className="font-semibold text-gray-800 dark:text-white">
+                {a.title}
+              </h2>
+
+              <p className="mt-2 text-sm text-gray-500">
+                Click to view student submissions
+              </p>
+            </div>
+          </Link>
+        ))}
+      </div>
     </>
   );
 }

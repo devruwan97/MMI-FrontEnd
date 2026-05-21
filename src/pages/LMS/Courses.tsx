@@ -2,16 +2,6 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import PageMeta from "../../components/common/PageMeta";
 
-const categories = [
-  "All",
-  "Mathematics",
-  "English",
-  "Science",
-  "Technology",
-  "Humanities",
-  "Arts",
-];
-
 export default function CoursesPage() {
   const [courses, setCourses] = useState<any[]>([]);
   const [selected, setSelected] = useState("All");
@@ -87,22 +77,6 @@ export default function CoursesPage() {
           onChange={(e) => setSearch(e.target.value)}
           className="flex-1 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-700 outline-none focus:border-brand-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:focus:border-brand-400"
         />
-
-        <div className="flex flex-wrap gap-2">
-          {categories.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => setSelected(cat)}
-              className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
-                selected === cat
-                  ? "bg-brand-500 text-white"
-                  : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
-              }`}
-            >
-              {cat}
-            </button>
-          ))}
-        </div>
       </div>
 
       {loading ? (

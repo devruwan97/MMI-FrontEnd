@@ -1,25 +1,21 @@
 import { useState, useEffect } from "react";
 import PageMeta from "../../../components/common/PageMeta";
 
-interface Sibling {
+interface SiblingRequest {
   id: number;
-  name?: string;
-}
-
-interface SiblingGroup {
-  id: number;
-  groupName: string;
-  siblings?: Sibling[];
+  requesterStudentId: number;
+  targetStudentId: number;
+  status: string;
 }
 
 export default function Siblings() {
-  const [groups, setGroups] = useState<SiblingGroup[]>([]);
+  const [requests, setRequests] = useState<SiblingRequest[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    fetch("http://localhost:8080/api/siblings/groups", {
+    fetch("http://localhost:8080/api/siblings/allRequests", {
       headers: {
         "Accept": "application/json",
         ...(token && { Authorization: `Bearer ${token}` }),
@@ -37,7 +33,7 @@ export default function Siblings() {
           const errorBody = await res.text().catch(() => "");
           throw new Error(`Server error: ${res.status} ${errorBody}`);
         }
-        
+
         const text = await res.text();
         try {
           return JSON.parse(text);
@@ -47,8 +43,8 @@ export default function Siblings() {
         }
       })
       .then((data) => {
-        const list = Array.isArray(data) ? data : data.groups || [];
-        setGroups(list);
+        const list = Array.isArray(data) ? data : [];
+        setRequests(list);
         setIsLoading(false);
       })
       .catch((err) => {
@@ -57,6 +53,68 @@ export default function Siblings() {
         setIsLoading(false);
       });
   }, []);
+
+  const handleApprove = async (requestId: number) => {
+    const token = localStorage.getItem("token");
+
+    try {
+      const res = await fetch(
+        `http://localhost:8080/api/siblings/approve/${requestId}`,
+        {
+          method: "POST",
+          headers: {
+            ...(token && { Authorization: `Bearer ${token}` }),
+          },
+        }
+      );
+
+      if (!res.ok) {
+        throw new Error(await res.text());
+      }
+
+      setRequests((prev) =>
+        prev.map((r) =>
+          r.id === requestId ? { ...r, status: "APPROVED" } : r
+        )
+      );
+
+      alert("Request approved successfully");
+    } catch (err) {
+      console.error(err);
+      alert("Failed to approve request");
+    }
+  };
+
+  const handleReject = async (requestId: number) => {
+    const token = localStorage.getItem("token");
+
+    try {
+      const res = await fetch(
+        `http://localhost:8080/api/siblings/reject/${requestId}`,
+        {
+          method: "POST",
+          headers: {
+            ...(token && { Authorization: `Bearer ${token}` }),
+          },
+        }
+      );
+
+      if (!res.ok) {
+        throw new Error(await res.text());
+      }
+
+      setRequests((prev) =>
+        prev.map((r) =>
+          r.id === requestId ? { ...r, status: "REJECTED" } : r
+        )
+      );
+
+      alert("Request rejected successfully");
+    } catch (err) {
+      console.error(err);
+      alert("Failed to reject request");
+    }
+  };
 
   return (
     <>
@@ -67,7 +125,7 @@ export default function Siblings() {
           <h1 className="text-2xl font-bold text-gray-800 dark:text-white">Siblings Management</h1>
           <p className="text-gray-500 dark:text-gray-400 mt-1">Detailed view of all linked student sibling groups</p>
         </div>
-        
+
       </div>
 
       <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden shadow-sm">
@@ -75,9 +133,25 @@ export default function Siblings() {
           <table className="w-full text-sm text-left">
             <thead className="bg-gray-50 dark:bg-gray-800 border-b border-gray-100 dark:border-gray-800">
               <tr>
-                <th className="px-5 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Group ID</th>
-                <th className="px-5 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Group Name</th>
-                <th className="px-5 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Member Count</th>
+                <th className="px-5 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                  Request ID
+                </th>
+
+                <th className="px-5 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                  Requester Student
+                </th>
+
+                <th className="px-5 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                  Target Student
+                </th>
+
+                <th className="px-5 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                  Status
+                </th>
+
+                <th className="px-5 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                  Action
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
@@ -85,14 +159,68 @@ export default function Siblings() {
                 <tr><td colSpan={3} className="px-5 py-10 text-center text-red-500 font-medium">Error: {error}</td></tr>
               ) : isLoading ? (
                 <tr><td colSpan={3} className="px-5 py-10 text-center text-gray-500">Loading records...</td></tr>
-              ) : groups.length === 0 ? (
-                <tr><td colSpan={3} className="px-5 py-10 text-center text-gray-500">No sibling groups found</td></tr>
+              ) : requests.length === 0 ? (
+                <tr><td colSpan={3} className="px-5 py-10 text-center text-gray-500">No sibling Requests found</td></tr>
               ) : (
-                groups.map((g) => (
-                  <tr key={g.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
-                    <td className="px-5 py-4 text-gray-400 text-xs">#{g.id}</td>
-                    <td className="px-5 py-4 font-semibold text-gray-800 dark:text-white">{g.groupName}</td>
-                    <td className="px-5 py-4 text-gray-500">{g.siblings?.length || 0} Students</td>
+                requests.map((request) => (
+                  <tr
+                    key={request.id}
+                    className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
+                  >
+                    <td className="px-5 py-4 text-gray-400 text-xs">
+                      {request.id}
+                    </td>
+
+                    <td className="px-5 py-4 font-medium text-gray-800 dark:text-white">
+                      {"MMIS"+request.requesterStudentId}
+                    </td>
+
+                    <td className="px-5 py-4 font-medium text-gray-800 dark:text-white">
+                      {"MMIS"+request.targetStudentId}
+                    </td>
+
+                    <td className="px-5 py-4">
+                      <span
+                        className={`rounded-full px-3 py-1 text-xs font-semibold ${request.status === "APPROVED"
+                            ? "bg-green-100 text-green-700"
+                            : request.status === "REJECTED"
+                              ? "bg-red-100 text-red-700"
+                              : "bg-yellow-100 text-yellow-700"
+                          }`}
+                      >
+                        {request.status}
+                      </span>
+                    </td>
+
+                    <td className="px-5 py-4">
+                      {request.status === "PENDING" ? (
+                        <select
+                          defaultValue=""
+                          onChange={(e) => {
+                            const value = e.target.value;
+
+                            if (value === "approve") {
+                              handleApprove(request.id);
+                            }
+
+                            if (value === "reject") {
+                              handleReject(request.id);
+                            }
+
+                            e.target.selectedIndex = 0;
+                          }}
+                          className="rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm"
+                        >
+                          <option value="">Actions</option>
+                          <option value="approve">Approve</option>
+                          <option value="reject">Reject</option>
+                        </select>
+                      ) : (
+                        <span className="text-gray-400 text-sm">
+                          Completed
+                        </span>
+                      )}
+                    </td>
                   </tr>
                 ))
               )}

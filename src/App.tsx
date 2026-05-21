@@ -30,16 +30,19 @@ import EditUserPage from "./pages/LMS/admin/EditUser";
 import TeachersPage from "./pages/LMS/admin/Teachers";
 import StudentsPage from "./pages/LMS/admin/Students";
 import AssignCoursesPage from "./pages/LMS/admin/AssignCourses";
+import AssignUnitsPage from "./pages/LMS/admin/AssignUnits";
 import EnrollmentsPage from "./pages/LMS/admin/Enrollments";
 import Siblings from "./pages/LMS/admin/Siblings";
 import PaymentDetailsPage from "./pages/LMS/admin/PaymentDetails";
 import MyUnits from "./pages/LMS/student/MyUnitsPage";
+import FinalGrades from "./pages/LMS/student/FinalGrades";
 import UnitDetailsPage from "./pages/LMS/student/UnitDetailsPage";
 import TeacherUnitsPage from  "./pages/LMS/teacher/TeacherUnitsPage";
 import TeacherSubmissionsCoursesPage from "./pages/LMS/teacher/submissions/TeacherSubmissionsCoursesPage";
 import TeacherSubmissionsUnitsPage from "./pages/LMS/teacher/submissions/TeacherSubmissionsUnitsPage";
 import TeacherSubmissionsAssessmentsPage from "./pages/LMS/teacher/submissions/TeacherSubmissionsAssessmentsPage";
 import TeacherSubmissionsListPage from "./pages/LMS/teacher/submissions/TeacherSubmissionsListPage";
+import UnitFinalGrades from "./pages/LMS/teacher/submissions/UnitFinalGrades";
 import AdminDashboard from "./pages/Dashboard/AdminDashboard";
 import TeacherDashboardHome from "./pages/Dashboard/TeacherDashboardHome";
 import StudentDashboard from "./pages/Dashboard/StudentDashboard";
@@ -124,6 +127,15 @@ export default function App() {
           />
 
           <Route
+            path="/admin/teachers/assignUnits"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <AssignUnitsPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
             path="/admin/users/edit/:id"
             element={
               <ProtectedRoute allowedRoles={["admin"]}>
@@ -137,6 +149,15 @@ export default function App() {
             element={
               <ProtectedRoute allowedRoles={["student"]}>
                 <PaymentsPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/finalGrades"
+            element={
+              <ProtectedRoute allowedRoles={["student"]}>
+                <FinalGrades />
               </ProtectedRoute>
             }
           />
@@ -301,6 +322,14 @@ export default function App() {
     </ProtectedRoute>
   }
 />
+  <Route
+    path="/teacher/submissions/:courseId/units/:unitId/final-grades"
+    element={
+      <ProtectedRoute allowedRoles={["teacher"]}>
+        <UnitFinalGrades />
+      </ProtectedRoute>
+    }
+  />
 <Route path="/admin" element={<AdminDashboard />} />
 <Route path="/teacher" element={<TeacherDashboardHome />} />
 <Route path="/student" element={<StudentDashboard />} />

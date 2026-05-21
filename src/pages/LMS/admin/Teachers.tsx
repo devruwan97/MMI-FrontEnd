@@ -22,7 +22,7 @@ export default function TeachersPage() {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    const url = "http://localhost:8080/api/teachers"; // Assuming this is your teachers API endpoint
+    const url = "http://localhost:8080/api/teachers";
     console.log(`Fetching teachers from: ${url}`);
 
     fetch(url, {
@@ -86,6 +86,7 @@ export default function TeachersPage() {
           <table className="w-full text-sm text-left">
             <thead className="bg-gray-50 dark:bg-gray-800 border-b border-gray-100 dark:border-gray-800">
               <tr>
+                <th className="px-5 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">ID</th>
                 <th className="px-5 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Teacher</th>
                 <th className="px-5 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Email</th>
                 <th className="px-5 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Qualifications</th>
@@ -104,6 +105,7 @@ export default function TeachersPage() {
               ) : (
                 filteredTeachers.map((t) => (
                   <tr key={t.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+                    <td className="px-5 py-4 font-semibold text-gray-800 dark:text-white">{"MMIT"+t.id}</td>
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-3">
                         <div className="h-9 w-9 rounded-full bg-purple-50 dark:bg-purple-900/20 text-purple-600 flex items-center justify-center font-bold">

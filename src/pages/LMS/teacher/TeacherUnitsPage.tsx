@@ -43,44 +43,62 @@ export default function TeacherUnitsPage() {
   const [error, setError] = useState<string | null>(null);
 
   const [openTerm, setOpenTerm] = useState<number | null>(null);
+  const [showAssignedOnly, setShowAssignedOnly] = useState(false);
 
   useEffect(() => {
-    const fetchUnits = async () => {
-      try {
-        const token = localStorage.getItem("token");
-
-        const res = await fetch(
-          `http://localhost:8080/api/courses/${courseId}/units`,
-          {
-            headers: {
-              ...(token && {
-                Authorization: `Bearer ${token}`,
-              }),
-            },
-          }
-        );
-
-        if (!res.ok) {
-          throw new Error(`Server error (${res.status})`);
-        }
-
-        const result = await res.json();
-        setData(result);
-      } catch (err: any) {
-        setError(err.message || "Failed to load units");
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchUnits();
-  }, [courseId]);
+  }, [courseId, showAssignedOnly]);
+
+  const fetchUnits = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const token = localStorage.getItem("token");
+      const teacherId = localStorage.getItem("userId");
+
+      if (showAssignedOnly && !teacherId) {
+        throw new Error("Teacher ID missing in localStorage");
+      }
+
+      const endpoint = showAssignedOnly
+        ? `http://localhost:8080/api/teachers/${teacherId}/assigned-units`
+        : `http://localhost:8080/api/courses/${courseId}/units`;
+
+      const res = await fetch(endpoint, {
+        headers: {
+          ...(token && {
+            Authorization: `Bearer ${token}`,
+          }),
+        },
+      });
+
+      if (!res.ok) {
+        throw new Error(`Server error (${res.status})`);
+      }
+
+      const result = await res.json();
+
+      // 🔥 ONLY FIX (no UI change)
+      const normalized: UnitResponse = showAssignedOnly
+        ? {
+            unitCount: result.length,
+            units: result,
+          }
+        : result;
+
+      setData(normalized);
+    } catch (err: any) {
+      setError(err.message || "Failed to load units");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const toggleTerm = (termId: number) => {
     setOpenTerm(openTerm === termId ? null : termId);
   };
 
-  // GROUP + SORT TERMS BY START DATE
   const groupByTerm = (units: Unit[]): TermGroup[] => {
     const grouped = units.reduce((acc: Record<number, TermGroup>, unit) => {
       if (!acc[unit.termId]) {
@@ -94,7 +112,6 @@ export default function TeacherUnitsPage() {
       }
 
       acc[unit.termId].units.push(unit);
-
       return acc;
     }, {});
 
@@ -105,36 +122,56 @@ export default function TeacherUnitsPage() {
     );
   };
 
-  const groupedTerms = data?.units
-    ? groupByTerm(data.units)
-    : [];
+  const groupedTerms = data?.units ? groupByTerm(data.units) : [];
 
   return (
     <>
-      <PageMeta
-        title="Teacher Units"
-        description="Teacher course units"
-      />
+      <PageMeta title="Teacher Units" description="Teacher course units" />
 
       {/* HEADER */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-800 dark:text-white">
-          Course Units
-        </h1>
+      <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-white">
+            Course Units
+          </h1>
 
-        {data && (
-          <p className="text-gray-500 dark:text-gray-400 mt-1">
-            {data.unitCount} Units Available
-          </p>
-        )}
+          {data && (
+            <p className="text-gray-500 dark:text-gray-400 mt-1">
+              {data.unitCount} Units Available
+            </p>
+          )}
+        </div>
+
+        {/* FILTER BUTTONS */}
+        <div className="flex gap-3">
+          <button
+            onClick={() => setShowAssignedOnly(false)}
+            className={`px-4 py-2 rounded-lg border transition ${
+              !showAssignedOnly
+                ? "bg-green-600 text-white border-green-600"
+                : "bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-700"
+            }`}
+          >
+            All Units
+          </button>
+
+          <button
+            onClick={() => setShowAssignedOnly(true)}
+            className={`px-4 py-2 rounded-lg border transition ${
+              showAssignedOnly
+                ? "bg-green-600 text-white border-green-600"
+                : "bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-700"
+            }`}
+          >
+            My Assigned Units
+          </button>
+        </div>
       </div>
 
       {/* LOADING */}
       {loading ? (
         <div className="flex justify-center items-center py-20">
-          <p className="text-gray-500">
-            Loading units...
-          </p>
+          <p className="text-gray-500">Loading units...</p>
         </div>
       ) : error ? (
         <div className="rounded-2xl border border-red-100 bg-red-50 p-6 text-center dark:border-red-900/30 dark:bg-red-900/20">
@@ -145,7 +182,6 @@ export default function TeacherUnitsPage() {
       ) : groupedTerms.length === 0 ? (
         <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-16 text-center">
           <div className="mb-4 text-4xl">📘</div>
-
           <p className="text-gray-500 dark:text-gray-400">
             No units available
           </p>
@@ -168,20 +204,13 @@ export default function TeacherUnitsPage() {
                   </h2>
 
                   <p className="text-sm text-gray-500 mt-1">
-                    {new Date(
-                      term.termStartDate
-                    ).toLocaleDateString()}{" "}
-                    →{" "}
-                    {new Date(
-                      term.termEndDate
-                    ).toLocaleDateString()}
+                    {new Date(term.termStartDate).toLocaleDateString()} →{" "}
+                    {new Date(term.termEndDate).toLocaleDateString()}
                   </p>
                 </div>
 
                 <span className="text-xl">
-                  {openTerm === term.termId
-                    ? "−"
-                    : "+"}
+                  {openTerm === term.termId ? "−" : "+"}
                 </span>
               </button>
 
@@ -195,12 +224,10 @@ export default function TeacherUnitsPage() {
                       state={{ unit }}
                       className="group rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden hover:shadow-lg transition-all"
                     >
-                      {/* CARD HEADER */}
                       <div className="h-32 bg-gradient-to-r from-green-500 to-teal-600 flex items-center justify-center text-white text-2xl font-bold">
                         {unit.unitCode}
                       </div>
 
-                      {/* CARD BODY */}
                       <div className="p-4">
                         <h3 className="font-semibold text-gray-800 dark:text-white group-hover:text-green-600 transition-colors">
                           {unit.unitName}

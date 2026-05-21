@@ -45,44 +45,55 @@ export default function ManageUsersPage() {
       });
   }, []);
 
-  const handleDelete = async (user: User) => {
-    const targetId = user.id || user._id;
-    if (!targetId || targetId === "undefined") {
-      console.error("Delete failed: ID is missing", user);
-      return alert("Error: User ID is missing. Check console for details.");
-    }
+const handleDelete = async (user: User) => {
+  const targetId = user.id || user._id;
 
-    const confirmDelete = window.confirm("Are you sure you want to delete this user?");
-    if (!confirmDelete) return;
+  if (!targetId || targetId === "undefined") {
+    return alert("Error: User ID is missing.");
+  }
 
-    const token = localStorage.getItem("token");
-    if (!token) {
-      console.error("Authentication token is missing from localStorage");
-      return alert("Error: You are not logged in. Please log in again.");
-    }
+  const confirmDelete = window.confirm(
+    `Are you sure you want to delete ${user.name}?`
+  );
 
-    const url = `http://localhost:8080/api/users/${targetId}`;
-    console.log(`Attempting DELETE request to: ${url} with token: ${token.substring(0, 10)}...`);
+  if (!confirmDelete) return;
 
-    try {
-      const res = await fetch(url, {
+  const token = localStorage.getItem("token");
+
+  try {
+    const res = await fetch(
+      `http://localhost:8080/api/users/${targetId}`,
+      {
         method: "DELETE",
         headers: {
           ...(token && { Authorization: `Bearer ${token}` }),
         },
-      });
-
-      if (!res.ok) {
-        const errorData = await res.json().catch(() => ({}));
-        throw new Error(errorData.message || `Server returned ${res.status}`);
       }
+    );
 
-      setUsers((prev) => prev.filter((u) => (u.id || u._id) !== targetId));
-    } catch (err: Error | unknown) {
-      const message = err instanceof Error ? err.message : "An error occurred while deleting the user.";
-      alert(message);
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+
+      throw new Error(
+        errorData.message || `Delete failed (${res.status})`
+      );
     }
-  };
+
+    setUsers((prev) =>
+      prev.filter((u) => (u.id || u._id) !== targetId)
+    );
+
+    alert("User deleted successfully!");
+
+  } catch (err: Error | unknown) {
+    const message =
+      err instanceof Error
+        ? err.message
+        : "An error occurred while deleting.";
+
+    alert(message);
+  }
+};
 
   const filteredUsers = users.filter((u) => {
     const matchesSearch =

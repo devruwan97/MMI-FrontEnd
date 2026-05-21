@@ -11,16 +11,18 @@ export default function CreateUserPage() {
     passwordHash: "",
     role: "student",
     phone: "",
-
     dateOfBirth: "",
     parentName: "",
     address: "",
-
     qualifications: "",
     bio: "",
   });
 
   const [loading, setLoading] = useState(false);
+
+  // Bulk upload states
+  const [bulkFile, setBulkFile] = useState<File | null>(null);
+  const [bulkLoading, setBulkLoading] = useState(false);
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -35,6 +37,9 @@ export default function CreateUserPage() {
     }));
   };
 
+  // -----------------------------
+  // CREATE SINGLE USER
+  // -----------------------------
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -63,52 +68,36 @@ export default function CreateUserPage() {
       const userId = userData.id;
 
       if (form.role === "student") {
-        const studentRes = await fetch(
-          "http://localhost:8080/api/students",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              ...(token && { Authorization: `Bearer ${token}` }),
-            },
-            body: JSON.stringify({
-              userId,
-              dateOfBirth: form.dateOfBirth,
-              parentName: form.parentName,
-              address: form.address,
-            }),
-          }
-        );
-
-        if (!studentRes.ok) {
-          console.error("Student creation failed");
-        }
+        await fetch("http://localhost:8080/api/students", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...(token && { Authorization: `Bearer ${token}` }),
+          },
+          body: JSON.stringify({
+            userId,
+            dateOfBirth: form.dateOfBirth,
+            parentName: form.parentName,
+            address: form.address,
+          }),
+        });
       }
 
       if (form.role === "teacher") {
-        const teacherRes = await fetch(
-          `http://localhost:8080/api/teachers/user/${userId}`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              ...(token && { Authorization: `Bearer ${token}` }),
-            },
-            body: JSON.stringify({
-              qualifications: form.qualifications,
-              bio: form.bio,
-            }),
-          }
-        );
-
-        if (!teacherRes.ok) {
-          const err = await teacherRes.text();
-          console.error("Teacher creation failed:", err);
-        }
+        await fetch(`http://localhost:8080/api/teachers/user/${userId}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...(token && { Authorization: `Bearer ${token}` }),
+          },
+          body: JSON.stringify({
+            qualifications: form.qualifications,
+            bio: form.bio,
+          }),
+        });
       }
 
       alert("User created successfully");
-
       navigate("/admin/manage-users");
     } catch (err) {
       console.error(err);
@@ -118,13 +107,78 @@ export default function CreateUserPage() {
     }
   };
 
+  // -----------------------------
+  // BULK UPLOAD (FIXED)
+  // -----------------------------
+  const handleBulkUpload = async () => {
+    if (!bulkFile) return;
+
+    setBulkLoading(true);
+
+    const token = localStorage.getItem("token");
+
+    try {
+      const formData = new FormData();
+      formData.append("file", bulkFile); // MUST match @RequestParam("file")
+
+      const res = await fetch("http://localhost:8080/api/users/bulk", {
+        method: "POST",
+        headers: {
+          ...(token && { Authorization: `Bearer ${token}` }),
+          // DO NOT set Content-Type
+        },
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const msg = await res.text();
+        throw new Error(msg || "Bulk upload failed");
+      }
+
+      alert("Bulk users created successfully!");
+      setBulkFile(null);
+    } catch (err) {
+      console.error(err);
+      alert("Bulk upload failed");
+    } finally {
+      setBulkLoading(false);
+    }
+  };
+
   return (
     <>
       <PageMeta title="Create User | Admin" description="Create new user" />
 
       <div className="max-w-xl mx-auto bg-white dark:bg-gray-900 p-6 rounded-2xl border border-gray-200 dark:border-gray-800">
+
+        {/* BULK UPLOAD SECTION */}
+        <div className="mb-6 p-4 border rounded-xl bg-gray-50 dark:bg-gray-800">
+          <h2 className="font-bold mb-2">Bulk Import Users (Excel)</h2>
+
+          <input
+            type="file"
+            accept=".xlsx"
+            onChange={(e) => setBulkFile(e.target.files?.[0] || null)}
+            className="mb-2"
+          />
+
+          <button
+            type="button"
+            onClick={handleBulkUpload}
+            disabled={!bulkFile || bulkLoading}
+            className="bg-blue-600 text-white px-4 py-2 rounded"
+          >
+            {bulkLoading ? "Uploading..." : "Upload Excel"}
+          </button>
+
+          <p className="text-xs text-gray-500 mt-2">
+            Columns required in Excel: name, email, password, role, phone
+          </p>
+        </div>
+
         <h1 className="text-xl font-bold mb-4">Create New User</h1>
 
+        {/* FORM */}
         <form onSubmit={handleSubmit} className="space-y-4">
 
           <input
@@ -171,6 +225,7 @@ export default function CreateUserPage() {
             className="w-full p-2 border rounded"
           />
 
+          {/* STUDENT FIELDS */}
           {form.role === "student" && (
             <>
               <input
@@ -199,6 +254,7 @@ export default function CreateUserPage() {
             </>
           )}
 
+          {/* TEACHER FIELDS */}
           {form.role === "teacher" && (
             <>
               <textarea
@@ -225,6 +281,7 @@ export default function CreateUserPage() {
           >
             {loading ? "Creating..." : "Create User"}
           </button>
+
         </form>
       </div>
     </>

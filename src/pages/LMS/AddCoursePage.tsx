@@ -5,6 +5,7 @@ import { getAuthHeaders } from "../../api/Api";
 
 export default function AddCoursePage() {
   const navigate = useNavigate();
+  const userId = Number(localStorage.getItem("userId"));
 
   const [form, setForm] = useState({
     title: "",
@@ -42,7 +43,7 @@ export default function AddCoursePage() {
 
     try {
       const res = await fetch(
-        "http://localhost:8080/api/courses/user/1",
+        `http://localhost:8080/api/courses/user/${userId}`,
         {
           method: "POST",
           headers: getAuthHeaders(),

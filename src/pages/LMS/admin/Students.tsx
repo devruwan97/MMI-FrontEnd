@@ -98,9 +98,6 @@ export default function StudentsPage() {
                   Student ID
                 </th>
                 <th className="px-5 py-4 text-xs font-semibold text-gray-500 uppercase">
-                  User ID
-                </th>
-                <th className="px-5 py-4 text-xs font-semibold text-gray-500 uppercase">
                   Date of Birth
                 </th>
                 <th className="px-5 py-4 text-xs font-semibold text-gray-500 uppercase">
@@ -135,13 +132,8 @@ export default function StudentsPage() {
                 filteredStudents.map((s) => (
                   <tr key={s.id}>
                     <td className="px-5 py-4 font-semibold text-gray-800 dark:text-white">
-                      {s.id}
+                      {"MMIS"+s.id}
                     </td>
-
-                    <td className="px-5 py-4 text-gray-500">
-                      {s.userId}
-                    </td>
-
                     <td className="px-5 py-4 text-gray-500">
                       {s.dateOfBirth || "—"}
                     </td>

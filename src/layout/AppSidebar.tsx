@@ -11,6 +11,7 @@ import {
   GroupIcon,
   MailIcon,
   TableIcon,
+  FileIcon,
 } from "../icons";
 import { useSidebar } from "../context/SidebarContext";
 import SidebarWidget from "./SidebarWidget";
@@ -84,6 +85,7 @@ const navItems: NavItem[] = [
     subItems: [
       { name: "View Teachers", path: "/admin/teachers" },
       { name: "Assign Courses", path: "/admin/teachers/assign" },
+      { name: "Assign Units", path: "/admin/teachers/assignUnits" },
     ],
   },
 
@@ -101,7 +103,7 @@ const navItems: NavItem[] = [
     subItems: [{ name: "Payment Details", path: "/admin/payments" }],
   },
 
-  { icon: <PieChartIcon />, name: "Analytics", path: "/admin/analytics", roles: ["admin"] },
+  { icon: <PieChartIcon />, name: "Analytics", path: "/admin/analytics", roles: ["management"] },
 
   { icon: <GroupIcon />, name: "Siblings", path: "/admin/siblings", roles: ["admin"] },
 
@@ -109,9 +111,10 @@ const navItems: NavItem[] = [
 
 
   { icon: <CalenderIcon />, name: "My Schedule", path: "/teacher/schedule", roles: ["teacher"] },
-  { icon: <UserCircleIcon />, name: "About Us", path: "/about", roles: ["admin", "student"] },
+  { icon: <UserCircleIcon />, name: "About Us", path: "/about", roles: ["student"] },
 
-  { icon: <MailIcon />, name: "Contact", path: "/contact", roles: ["admin", "student"] },
+  { icon: <MailIcon />, name: "Contact", path: "/contact", roles: ["student"] },
+  { icon: <FileIcon />, name: "Final Grades", path: "/finalGrades", roles: ["student"] },
 
 {
   icon: <TableIcon />,
