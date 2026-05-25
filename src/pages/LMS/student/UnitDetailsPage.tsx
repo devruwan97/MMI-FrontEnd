@@ -48,11 +48,13 @@ export default function UnitDetailsPage() {
   const [data, setData] = useState<AssessmentResponse | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // SAFE DATE CHECK (FIXED)
+  const [selectedAssessment, setSelectedAssessment] = useState<Assessment | null>(null);
+  const [file, setFile] = useState<File | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+
+
   const isPastDue = (dueDate: string) => {
     if (!dueDate) return false;
-
-    // ensures full-day correctness
     const due = new Date(dueDate + "T23:59:59").getTime();
     return due < Date.now();
   };
@@ -70,9 +72,7 @@ export default function UnitDetailsPage() {
           `http://localhost:8080/api/units/${unit.id}/assessments`,
           {
             headers: {
-              ...(token && {
-                Authorization: `Bearer ${token}`,
-              }),
+              ...(token && { Authorization: `Bearer ${token}` }),
             },
           }
         );
@@ -82,7 +82,7 @@ export default function UnitDetailsPage() {
         const result = await res.json();
         setData(result);
       } catch (err) {
-        console.error("Assessment error:", err);
+        console.error(err);
         setData({ unitId: unit.id, assessments: [] });
       } finally {
         setLoading(false);
@@ -99,6 +99,54 @@ export default function UnitDetailsPage() {
       </div>
     );
   }
+
+const handleSubmit = async () => {
+  if (!selectedAssessment || !file) return;
+
+  try {
+    setSubmitting(true);
+
+    const token = localStorage.getItem("token");
+
+    const fakeFileUrl = `https://fake-storage.com/uploads/${Date.now()}-${file.name}`;
+
+    const studentId = Number(localStorage.getItem("userId"));
+
+    const payload = {
+      assessmentId: selectedAssessment.id,
+      studentId: studentId,
+      fileName: file.name,
+      fileUrl: fakeFileUrl
+    };
+
+    const res = await fetch("http://localhost:8080/api/submissions/submit", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok || !data) {
+      throw new Error(data?.message || "Submission failed");
+    }
+
+    alert(data.message || "Assessment submitted successfully!");
+
+    // reset UI
+    setSelectedAssessment(null);
+    setFile(null);
+
+  } catch (err) {
+    console.error(err);
+    alert("Submission failed. Try again.");
+  } finally {
+    setSubmitting(false);
+  }
+};
 
   return (
     <>
@@ -136,7 +184,7 @@ export default function UnitDetailsPage() {
                 </a>
               ))
             ) : (
-              <p className="text-gray-500">No materials</p>
+              <p>No materials</p>
             )}
           </div>
         )}
@@ -153,84 +201,52 @@ export default function UnitDetailsPage() {
         </button>
 
         {openAssessments && (
-          <div className="p-6 border-t space-y-6">
+          <div className="p-6 space-y-6">
             {loading ? (
-              <p className="text-gray-500">Loading assessments...</p>
+              <p>Loading...</p>
             ) : !data?.assessments?.length ? (
-              <p className="text-gray-500">No assessments available</p>
+              <p>No assessments</p>
             ) : (
               data.assessments.map((a) => {
                 const pastDue = isPastDue(a.dueDate);
                 const hasGrades = (a.grades?.length ?? 0) > 0;
 
                 return (
-                  <div key={a.id} className="border rounded-xl p-4">
+                  <div key={a.id} className="border p-4 rounded-xl">
 
-                    {/* TOP SECTION */}
-                    <div className="flex justify-between items-start">
+                    <div className="flex justify-between">
                       <div>
                         <h3 className="font-semibold">
                           {a.assessmentCode} - {a.assessmentName}
                         </h3>
-
                         <p className="text-sm text-gray-500">
-                          Due: {a.dueDate} | Max: {a.maxMarks}
+                          Due: {a.dueDate}
                         </p>
                       </div>
 
-                      {/* SUBMIT BUTTON LOGIC */}
                       {!pastDue ? (
-                        <a
-                          href={`/submit-assessment/${a.id}`}
+                        <button
+                          onClick={() => setSelectedAssessment(a)}
                           className="text-brand-500 font-semibold"
                         >
                           Submit →
-                        </a>
+                        </button>
                       ) : (
-                        <span className="text-gray-400 font-semibold cursor-not-allowed">
-                          Closed
-                        </span>
+                        <span className="text-gray-400">Closed</span>
                       )}
                     </div>
 
-                    <p className="text-sm mt-2 text-gray-600">
-                      {a.description}
-                    </p>
-
-                    {/* GRADES ONLY WHEN PAST DUE */}
                     {pastDue && hasGrades && (
-                      <div className="mt-4 border-t pt-4">
-                        <h4 className="font-medium mb-2">
-                          Grades
-                        </h4>
-
-                        <table className="w-full text-sm border">
-                          <thead>
-                            <tr className="bg-gray-100">
-                              <th className="p-2">Marks</th>
-                              <th className="p-2">Grade</th>
-                            </tr>
-                          </thead>
-
-                          <tbody>
-                            {a.grades!.map((g, i) => (
-                              <tr key={i} className="border-t">
-                                <td className="p-2">{g.marks}</td>
-                                <td className="p-2">{g.grade}</td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    )}
-
-                    {/* NO GRADES MESSAGE */}
-                    {pastDue && !hasGrades && (
-                      <p className="text-sm text-gray-400 mt-3">
-                        Grades not released yet
+                      <p className="mt-3 text-sm">
+                        Grade: {a.grades![0].grade} ({a.grades![0].marks})
                       </p>
                     )}
 
+                    {pastDue && !hasGrades && (
+                      <p className="text-sm text-gray-400 mt-2">
+                        Grades not released yet
+                      </p>
+                    )}
                   </div>
                 );
               })
@@ -238,6 +254,42 @@ export default function UnitDetailsPage() {
           </div>
         )}
       </div>
+
+      {selectedAssessment && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-900 w-[400px] p-6 rounded-2xl">
+
+            <h2 className="text-lg font-semibold mb-4">
+              Submit: {selectedAssessment.assessmentName}
+            </h2>
+
+            {/* FILE INPUT */}
+            <input
+              type="file"
+              onChange={(e) => setFile(e.target.files?.[0] || null)}
+              className="w-full border p-2 rounded mb-4"
+            />
+
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setSelectedAssessment(null)}
+                className="text-gray-500"
+              >
+                Cancel
+              </button>
+
+              <button
+                onClick={handleSubmit}
+                disabled={!file || submitting}
+                className="bg-brand-500 text-white px-4 py-2 rounded disabled:opacity-50"
+              >
+                {submitting ? "Submitting..." : "Submit"}
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
     </>
   );
 }
