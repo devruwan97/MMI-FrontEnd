@@ -3,7 +3,6 @@ import { Link, useNavigate } from "react-router";
 import { EyeCloseIcon, EyeIcon } from "../../icons";
 import Label from "../form/Label";
 import Input from "../form/input/InputField";
-import Checkbox from "../form/input/Checkbox";
 import Button from "../ui/button/Button";
 import { Modal } from "../ui/modal";
 import { useModal } from "../../hooks/useModal";
@@ -64,8 +63,6 @@ export default function SignInForm() {
       console.log("Login success:", { ...data, rememberMe: isChecked });
 
       setLoading(false);
-
-      // ✅ ROLE BASED DASHBOARD REDIRECT (ADDED ONLY THIS)
       const role = data.role;
 
       if (role === "admin") {
@@ -74,6 +71,8 @@ export default function SignInForm() {
         navigate("/teacher");
       } else if (role === "student") {
         navigate("/student");
+      }else if (role === "management") {
+        navigate("/management");
       } else {
         navigate("/");
       }
@@ -148,17 +147,6 @@ export default function SignInForm() {
             </div>
 
             <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <Checkbox
-                  id="remember"
-                  checked={isChecked}
-                  onChange={setIsChecked}
-                />
-                <span className="block font-normal text-gray-700 text-theme-sm dark:text-gray-400 pl-3">
-                  Keep me logged in
-                </span>
-              </div>
-
               <Link
                 to="/reset-password"
                 className="text-sm text-brand-500 hover:text-brand-600 dark:text-brand-400"

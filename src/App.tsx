@@ -37,7 +37,7 @@ import PaymentDetailsPage from "./pages/LMS/admin/PaymentDetails";
 import MyUnits from "./pages/LMS/student/MyUnitsPage";
 import FinalGrades from "./pages/LMS/student/FinalGrades";
 import UnitDetailsPage from "./pages/LMS/student/UnitDetailsPage";
-import TeacherUnitsPage from  "./pages/LMS/teacher/TeacherUnitsPage";
+import TeacherUnitsPage from "./pages/LMS/teacher/TeacherUnitsPage";
 import TeacherSubmissionsCoursesPage from "./pages/LMS/teacher/submissions/TeacherSubmissionsCoursesPage";
 import TeacherSubmissionsUnitsPage from "./pages/LMS/teacher/submissions/TeacherSubmissionsUnitsPage";
 import TeacherSubmissionsAssessmentsPage from "./pages/LMS/teacher/submissions/TeacherSubmissionsAssessmentsPage";
@@ -46,6 +46,10 @@ import UnitFinalGrades from "./pages/LMS/teacher/submissions/UnitFinalGrades";
 import AdminDashboard from "./pages/Dashboard/AdminDashboard";
 import TeacherDashboardHome from "./pages/Dashboard/TeacherDashboardHome";
 import StudentDashboard from "./pages/Dashboard/StudentDashboard";
+import EnrollmentAnalytics from "./pages/LMS/management/CourseAnalytics";
+import UnitAnalytics from "./pages/LMS/management/UnitAnalytics";
+import FinancialAnalytics from "./pages/LMS/management/FinanceAnalytics";
+import ManagementDashboard from "./pages/Dashboard/ManagementDashboard";
 
 
 export default function App() {
@@ -285,54 +289,80 @@ export default function App() {
           <Route
             path="/teacher/courses/:courseId/units"
             element={<TeacherUnitsPage />}
-/>
-{/* SUBMISSIONS FLOW */}
-<Route
-  path="/teacher/submissions"
-  element={
-    <ProtectedRoute allowedRoles={["teacher"]}>
-      <TeacherSubmissionsCoursesPage />
-    </ProtectedRoute>
-  }
-/>
+          />
+          {/* SUBMISSIONS FLOW */}
+          <Route
+            path="/teacher/submissions"
+            element={
+              <ProtectedRoute allowedRoles={["teacher"]}>
+                <TeacherSubmissionsCoursesPage />
+              </ProtectedRoute>
+            }
+          />
 
-<Route
-  path="/teacher/submissions/:courseId/units"
-  element={
-    <ProtectedRoute allowedRoles={["teacher"]}>
-      <TeacherSubmissionsUnitsPage />
-    </ProtectedRoute>
-  }
-/>
+          <Route
+            path="/teacher/submissions/:courseId/units"
+            element={
+              <ProtectedRoute allowedRoles={["teacher"]}>
+                <TeacherSubmissionsUnitsPage />
+              </ProtectedRoute>
+            }
+          />
 
-<Route
-  path="/teacher/submissions/:courseId/units/:unitId/assessments"
-  element={
-    <ProtectedRoute allowedRoles={["teacher"]}>
-      <TeacherSubmissionsAssessmentsPage />
-    </ProtectedRoute>
-  }
-/>
+          <Route
+            path="/teacher/submissions/:courseId/units/:unitId/assessments"
+            element={
+              <ProtectedRoute allowedRoles={["teacher"]}>
+                <TeacherSubmissionsAssessmentsPage />
+              </ProtectedRoute>
+            }
+          />
 
-<Route
-  path="/teacher/submissions/:courseId/units/:unitId/assessments/:assessmentId/submissions"
-  element={
-    <ProtectedRoute allowedRoles={["teacher"]}>
-      <TeacherSubmissionsListPage />
-    </ProtectedRoute>
-  }
-/>
-  <Route
-    path="/teacher/submissions/:courseId/units/:unitId/final-grades"
-    element={
-      <ProtectedRoute allowedRoles={["teacher"]}>
-        <UnitFinalGrades />
-      </ProtectedRoute>
-    }
-  />
-<Route path="/admin" element={<AdminDashboard />} />
-<Route path="/teacher" element={<TeacherDashboardHome />} />
-<Route path="/student" element={<StudentDashboard />} />
+          <Route
+            path="/teacher/submissions/:courseId/units/:unitId/assessments/:assessmentId/submissions"
+            element={
+              <ProtectedRoute allowedRoles={["teacher"]}>
+                <TeacherSubmissionsListPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/management/courseAnalytics"
+            element={
+              <ProtectedRoute allowedRoles={["management"]}>
+                <EnrollmentAnalytics />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/management/unitAnalytics"
+            element={
+              <ProtectedRoute allowedRoles={["management"]}>
+                <UnitAnalytics />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/management/financialAnalytics"
+            element={
+              <ProtectedRoute allowedRoles={["management"]}>
+                <FinancialAnalytics />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/teacher/submissions/:courseId/units/:unitId/final-grades"
+            element={
+              <ProtectedRoute allowedRoles={["teacher"]}>
+                <UnitFinalGrades />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/teacher" element={<TeacherDashboardHome />} />
+          <Route path="/student" element={<StudentDashboard />} />
+          <Route path="/management" element={<ManagementDashboard />} />
         </Route>
 
         <Route path="/signin" element={<SignIn />} />

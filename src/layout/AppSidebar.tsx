@@ -28,6 +28,10 @@ const navItems: NavItem[] = [
   { icon: <GridIcon />, name: "Home", path: "/student", roles: ["student"] },
   { icon: <GridIcon />, name: "Home", path: "/admin", roles: ["admin"] },
   { icon: <GridIcon />, name: "Home", path: "/teacher", roles: ["teacher"] },
+  { icon: <GridIcon />, name: "Home", path: "/management", roles: ["management"] },
+  { icon: <PieChartIcon />, name: "Course Analytics", path: "/management/courseAnalytics", roles: ["management"] },
+  { icon: <PieChartIcon />, name: "Unit Analytics", path: "/management/unitAnalytics", roles: ["management"] },
+  { icon: <PieChartIcon />, name: "Financial Analytics", path: "/management/financialAnalytics", roles: ["management"] },
 
   {
     icon: <TableIcon />,
@@ -102,8 +106,6 @@ const navItems: NavItem[] = [
     roles: ["admin"],
     subItems: [{ name: "Payment Details", path: "/admin/payments" }],
   },
-
-  { icon: <PieChartIcon />, name: "Analytics", path: "/admin/analytics", roles: ["management"] },
 
   { icon: <GroupIcon />, name: "Siblings", path: "/admin/siblings", roles: ["admin"] },
 

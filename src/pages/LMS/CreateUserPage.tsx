@@ -20,7 +20,6 @@ export default function CreateUserPage() {
 
   const [loading, setLoading] = useState(false);
 
-  // Bulk upload states
   const [bulkFile, setBulkFile] = useState<File | null>(null);
   const [bulkLoading, setBulkLoading] = useState(false);
 
@@ -37,9 +36,6 @@ export default function CreateUserPage() {
     }));
   };
 
-  // -----------------------------
-  // CREATE SINGLE USER
-  // -----------------------------
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -107,9 +103,6 @@ export default function CreateUserPage() {
     }
   };
 
-  // -----------------------------
-  // BULK UPLOAD (FIXED)
-  // -----------------------------
   const handleBulkUpload = async () => {
     if (!bulkFile) return;
 
@@ -125,7 +118,6 @@ export default function CreateUserPage() {
         method: "POST",
         headers: {
           ...(token && { Authorization: `Bearer ${token}` }),
-          // DO NOT set Content-Type
         },
         body: formData,
       });
@@ -215,6 +207,7 @@ export default function CreateUserPage() {
             <option value="student">student</option>
             <option value="teacher">teacher</option>
             <option value="admin">admin</option>
+            <option value="management">management</option>
           </select>
 
           <input
