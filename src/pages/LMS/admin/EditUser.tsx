@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import PageMeta from "../../../components/common/PageMeta";
+import { API_BASE_URL } from "../../../api/Api";
+
 
 export default function EditUserPage() {
   const { id } = useParams();
@@ -27,7 +29,7 @@ export default function EditUserPage() {
 
     const token = localStorage.getItem("token");
 
-    fetch(`http://localhost:8080/api/users/${id}`, {
+    fetch(`${API_BASE_URL}/api/users/${id}`, {
       headers: {
         ...(token && { Authorization: `Bearer ${token}` }),
       },
@@ -74,7 +76,7 @@ export default function EditUserPage() {
       };
 
       const res = await fetch(
-        `http://localhost:8080/api/users/${id}`,
+        `${API_BASE_URL}/api/users/${id}`,
         {
           method: "PUT",
           headers: {

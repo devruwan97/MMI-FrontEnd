@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import PageMeta from "../../../components/common/PageMeta";
+import { API_BASE_URL } from "../../../api/Api";
 
 type Tab = "courses";
 
@@ -43,7 +44,7 @@ export default function TeacherDashboard() {
         // FETCH TEACHER PROFILE
         // =========================
         const teacherRes = await fetch(
-          `http://localhost:8080/api/teachers/${teacherId}`,
+          `${API_BASE_URL}/api/teachers/${teacherId}`,
           {
             headers: {
               "Content-Type": "application/json",
@@ -75,7 +76,7 @@ export default function TeacherDashboard() {
         // FETCH COURSES
         // =========================
         const courseRes = await fetch(
-          `http://localhost:8080/api/teachers/${teacherId}/schedule/courses`,
+          `${API_BASE_URL}/api/teachers/${teacherId}/schedule/courses`,
           {
             headers: {
               "Content-Type": "application/json",

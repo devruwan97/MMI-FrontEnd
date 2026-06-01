@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import PageMeta from "../../../components/common/PageMeta";
+import { API_BASE_URL } from "../../../api/Api";
 
 interface Material {
   id: number;
@@ -62,8 +63,8 @@ export default function TeacherUnitsPage() {
       }
 
       const endpoint = showAssignedOnly
-        ? `http://localhost:8080/api/teachers/${teacherId}/assigned-units`
-        : `http://localhost:8080/api/courses/${courseId}/units`;
+        ? `${API_BASE_URL}/api/teachers/${teacherId}/assigned-units`
+        : `${API_BASE_URL}/api/courses/${courseId}/units`;
 
       const res = await fetch(endpoint, {
         headers: {

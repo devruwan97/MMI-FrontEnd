@@ -1,11 +1,12 @@
 import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import PageMeta from "../../components/common/PageMeta";
+import {API_BASE_URL} from "./../../api/Api";
 
 export default function PaymentsPage() {
   const navigate = useNavigate();
   const [payments, setPayments] = useState<any[]>([]);
-  const [discounts, setDiscounts] = useState<any[]>([]);
+  const [discounts] = useState<any[]>([]);
   const [courses, setCourses] = useState<any[]>([]);
   const [siblings, setSiblings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -28,6 +29,7 @@ export default function PaymentsPage() {
   >("idle");
 
   useEffect(() => {
+    console.log(siblingRequestStatus);
     const fetchData = async () => {
       const token = localStorage.getItem("token");
 
@@ -38,9 +40,9 @@ export default function PaymentsPage() {
 
       try {
         const [pRes, cRes, siRes] = await Promise.all([
-          fetch(`http://localhost:8080/api/payments/student/${currentStudentId}`, { headers }),
-          fetch("http://localhost:8080/api/courses", { headers }),
-          fetch(`http://localhost:8080/api/siblings/student/${currentStudentId}`, { headers }),
+          fetch(`${API_BASE_URL}/api/payments/student/${currentStudentId}`, { headers }),
+          fetch(`${API_BASE_URL}/api/courses`, { headers }),
+          fetch(`${API_BASE_URL}/api/siblings/student/${currentStudentId}`, { headers }),
         ]);
 
         if (pRes.ok) setPayments(await pRes.json());
@@ -119,7 +121,7 @@ export default function PaymentsPage() {
 
     try {
 
-      const enrollRes = await fetch("http://localhost:8080/api/enrollments", {
+      const enrollRes = await fetch(`${API_BASE_URL}/api/enrollments`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -138,7 +140,7 @@ export default function PaymentsPage() {
 
       const enrollment = await enrollRes.json();
 
-      const res = await fetch("http://localhost:8080/api/payments", {
+      const res = await fetch(`${API_BASE_URL}/api/payments`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -214,7 +216,7 @@ export default function PaymentsPage() {
     }
 
     try {
-      const res = await fetch("http://localhost:8080/api/siblings/request", {
+      const res = await fetch(`${API_BASE_URL}/api/siblings/request`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

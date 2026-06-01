@@ -1,6 +1,7 @@
 import { useParams, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import PageMeta from "../../../../components/common/PageMeta";
+import { API_BASE_URL } from "../../../../api/Api";
 
 interface Assessment {
   id: number;
@@ -22,7 +23,7 @@ export default function TeacherSubmissionsAssessmentsPage() {
         setError(null);
 
         const res = await fetch(
-          `http://localhost:8080/api/units/${unitId}/assessments`
+          `${API_BASE_URL}/api/units/${unitId}/assessments`
         );
 
         if (!res.ok) {

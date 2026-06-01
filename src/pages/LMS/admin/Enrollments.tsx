@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import PageMeta from "../../../components/common/PageMeta";
+import { API_BASE_URL } from "../../../api/Api";
 
 interface Enrollment {
   id: number;
@@ -19,7 +20,7 @@ export default function EnrollmentsPage() {
   useEffect(() => {
     const token = localStorage.getItem("token");
 
-    fetch("http://localhost:8080/api/enrollments", {
+    fetch(`${API_BASE_URL}/api/enrollments`, {
       headers: {
         ...(token && { Authorization: `Bearer ${token}` }),
       },
@@ -59,7 +60,7 @@ export default function EnrollmentsPage() {
       const token = localStorage.getItem("token");
 
       const res = await fetch(
-        `http://localhost:8080/api/enrollments/${id}?status=${newStatus}`,
+        `${API_BASE_URL}/api/enrollments/${id}?status=${newStatus}`,
         {
           method: "PUT",
           headers: {

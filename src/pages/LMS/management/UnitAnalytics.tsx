@@ -11,6 +11,7 @@ import {
   Pie,
   Cell,
 } from "recharts";
+import { API_BASE_URL } from "../../../api/Api";
 
 interface Course {
   id: number;
@@ -46,7 +47,7 @@ export default function UnitAnalytics() {
   // ================= LOAD COURSES =================
   useEffect(() => {
     const fetchCourses = async () => {
-      const res = await fetch("http://localhost:8080/api/courses");
+      const res = await fetch(`${API_BASE_URL}/api/courses`);
       const data = await res.json();
       setCourses(data);
     };
@@ -59,7 +60,7 @@ export default function UnitAnalytics() {
 
     const fetchUnits = async () => {
       const res = await fetch(
-        `http://localhost:8080/api/courses/${selectedCourse}/units`
+        `${API_BASE_URL}/api/courses/${selectedCourse}/units`
       );
       const data = await res.json();
 
@@ -80,7 +81,7 @@ export default function UnitAnalytics() {
         setLoadingGrades(true);
 
         const res = await fetch(
-          `http://localhost:8080/api/grades/unit/${selectedUnit}/final`
+          `${API_BASE_URL}/api/grades/unit/${selectedUnit}/final`
         );
 
         const data = await res.json();

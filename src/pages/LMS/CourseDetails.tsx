@@ -1,6 +1,7 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import PageMeta from "../../components/common/PageMeta";
+import { API_BASE_URL } from "../../api/Api";
 
 export default function CourseDetails() {
   const { id } = useParams();
@@ -20,7 +21,7 @@ export default function CourseDetails() {
     const fetchCourse = async () => {
       try {
         const res = await fetch(
-          `http://localhost:8080/api/courses/${id}`,
+          `${API_BASE_URL}/api/courses/${id}`,
           {
             headers: {
               "Content-Type": "application/json",
@@ -59,7 +60,7 @@ export default function CourseDetails() {
       }
 
       const res = await fetch(
-        "http://localhost:8080/api/enrollments",
+        `${API_BASE_URL}/api/enrollments`,
         {
           method: "POST",
           headers: {
@@ -101,7 +102,7 @@ export default function CourseDetails() {
 
     try {
       const res = await fetch(
-        `http://localhost:8080/api/courses/${id}`,
+        `${API_BASE_URL}/api/courses/${id}`,
         {
           method: "DELETE",
           headers: {

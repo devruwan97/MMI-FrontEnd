@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import PageMeta from "../../../components/common/PageMeta";
+import { API_BASE_URL } from "../../../api/Api";
 
 interface Course {
   id: string | number;
@@ -26,7 +27,7 @@ export default function MyCoursesPage() {
       return;
     }
 
-    const url = `http://localhost:8080/api/courses/student/${userId}/courses`;
+    const url = `${API_BASE_URL}/api/courses/student/${userId}/courses`;
 
     fetch(url, {
       headers: {

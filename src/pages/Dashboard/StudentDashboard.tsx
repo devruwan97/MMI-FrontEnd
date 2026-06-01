@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import PageMeta from "../../components/common/PageMeta";
+import { API_BASE_URL } from "../../api/Api";
 
 interface Material {
   id: number;
@@ -28,7 +29,7 @@ export default function StudentDashboard() {
       try {
         const token = localStorage.getItem("token");
 
-        const res = await fetch("http://localhost:8080/api/units", {
+        const res = await fetch(`${API_BASE_URL}/api/units`, {
           headers: {
             ...(token && { Authorization: `Bearer ${token}` }),
           },

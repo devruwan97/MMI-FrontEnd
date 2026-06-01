@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import PageMeta from "../../components/common/PageMeta";
-import { getAuthHeaders } from "../../api/Api";
+import { API_BASE_URL, getAuthHeaders } from "../../api/Api";
 
 export default function AddCoursePage() {
   const navigate = useNavigate();
@@ -43,7 +43,7 @@ export default function AddCoursePage() {
 
     try {
       const res = await fetch(
-        `http://localhost:8080/api/courses/user/${userId}`,
+        `${API_BASE_URL}/api/courses/user/${userId}`,
         {
           method: "POST",
           headers: getAuthHeaders(),

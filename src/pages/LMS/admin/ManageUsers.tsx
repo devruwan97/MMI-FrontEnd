@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import PageMeta from "../../../components/common/PageMeta";
+import { API_BASE_URL } from "../../../api/Api";
 
 interface User {
   id: string | number;
@@ -22,7 +23,7 @@ export default function ManageUsersPage() {
   useEffect(() => {
     const token = localStorage.getItem("token");
 
-    fetch("http://localhost:8080/api/users", {
+    fetch(`${API_BASE_URL}/api/users`, {
       headers: {
         ...(token && { Authorization: `Bearer ${token}` }),
       },
@@ -62,7 +63,7 @@ const handleDelete = async (user: User) => {
 
   try {
     const res = await fetch(
-      `http://localhost:8080/api/users/${targetId}`,
+      `${API_BASE_URL}/api/users/${targetId}`,
       {
         method: "DELETE",
         headers: {

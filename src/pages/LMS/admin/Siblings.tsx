@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import PageMeta from "../../../components/common/PageMeta";
+import { API_BASE_URL } from "../../../api/Api";
 
 interface SiblingRequest {
   id: number;
@@ -15,7 +16,7 @@ export default function Siblings() {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    fetch("http://localhost:8080/api/siblings/allRequests", {
+    fetch(`${API_BASE_URL}/api/siblings/allRequests`, {
       headers: {
         "Accept": "application/json",
         ...(token && { Authorization: `Bearer ${token}` }),
@@ -59,7 +60,7 @@ export default function Siblings() {
 
     try {
       const res = await fetch(
-        `http://localhost:8080/api/siblings/approve/${requestId}`,
+        `${API_BASE_URL}/api/siblings/approve/${requestId}`,
         {
           method: "POST",
           headers: {
@@ -90,7 +91,7 @@ export default function Siblings() {
 
     try {
       const res = await fetch(
-        `http://localhost:8080/api/siblings/reject/${requestId}`,
+        `${API_BASE_URL}/api/siblings/reject/${requestId}`,
         {
           method: "POST",
           headers: {

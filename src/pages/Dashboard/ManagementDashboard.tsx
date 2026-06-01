@@ -14,6 +14,7 @@ import {
   Line,
   Legend
 } from "recharts";
+import { API_BASE_URL } from "../../api/Api";
 
 interface DashboardDTO {
   totalUsers: number;
@@ -32,7 +33,7 @@ export default function ManagementDashboard() {
       try {
         const token = localStorage.getItem("token");
 
-        const res = await fetch("http://localhost:8080/api/analytics/dashboard", {
+        const res = await fetch(`${API_BASE_URL}/api/analytics/dashboard`, {
           headers: {
             ...(token && { Authorization: `Bearer ${token}` }),
           },

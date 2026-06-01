@@ -1,6 +1,7 @@
 import { useState } from "react";
 import PageMeta from "../../components/common/PageMeta";
 import { useNavigate } from "react-router-dom";
+import { API_BASE_URL } from "../../api/Api";
 
 export default function CreateUserPage() {
   const navigate = useNavigate();
@@ -43,7 +44,7 @@ export default function CreateUserPage() {
     const token = localStorage.getItem("token");
 
     try {
-      const userRes = await fetch("http://localhost:8080/api/auth/register", {
+      const userRes = await fetch(`${API_BASE_URL}/api/auth/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -64,7 +65,7 @@ export default function CreateUserPage() {
       const userId = userData.id;
 
       if (form.role === "student") {
-        await fetch("http://localhost:8080/api/students", {
+        await fetch(`${API_BASE_URL}/api/students`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -80,7 +81,7 @@ export default function CreateUserPage() {
       }
 
       if (form.role === "teacher") {
-        await fetch(`http://localhost:8080/api/teachers/user/${userId}`, {
+        await fetch(`${API_BASE_URL}/api/teachers/user/${userId}`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -114,7 +115,7 @@ export default function CreateUserPage() {
       const formData = new FormData();
       formData.append("file", bulkFile); // MUST match @RequestParam("file")
 
-      const res = await fetch("http://localhost:8080/api/users/bulk", {
+      const res = await fetch(`${API_BASE_URL}/api/users/bulk`, {
         method: "POST",
         headers: {
           ...(token && { Authorization: `Bearer ${token}` }),

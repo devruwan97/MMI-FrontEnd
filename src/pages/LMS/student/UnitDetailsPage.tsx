@@ -1,6 +1,7 @@
 import { useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import PageMeta from "../../../components/common/PageMeta";
+import { API_BASE_URL } from "../../../api/Api";
 
 interface Material {
   id: number;
@@ -69,7 +70,7 @@ export default function UnitDetailsPage() {
         const token = localStorage.getItem("token");
 
         const res = await fetch(
-          `http://localhost:8080/api/units/${unit.id}/assessments`,
+          `${API_BASE_URL}/api/units/${unit.id}/assessments`,
           {
             headers: {
               ...(token && { Authorization: `Bearer ${token}` }),
@@ -119,7 +120,7 @@ const handleSubmit = async () => {
       fileUrl: fakeFileUrl
     };
 
-    const res = await fetch("http://localhost:8080/api/submissions/submit", {
+    const res = await fetch(`${API_BASE_URL}/api/submissions/submit`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

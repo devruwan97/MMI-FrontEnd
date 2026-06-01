@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import PageMeta from "../../../components/common/PageMeta";
+import { API_BASE_URL } from "../../../api/Api";
 
 interface Teacher {
   id: string | number;
@@ -26,8 +27,8 @@ export default function AssignCoursesPage() {
 
     // Fetch Teachers and Courses in parallel
     Promise.all([
-      fetch("http://localhost:8080/api/teachers", { headers }).then((res) => res.json()),
-      fetch("http://localhost:8080/api/courses", { headers }).then((res) => res.json()),
+      fetch(`${API_BASE_URL}/api/teachers`, { headers }).then((res) => res.json()),
+      fetch(`${API_BASE_URL}/api/courses`, { headers }).then((res) => res.json()),
     ])
       .then(([teacherData, courseData]) => {
         setTeachers(Array.isArray(teacherData) ? teacherData : teacherData.teachers || []);
@@ -50,7 +51,7 @@ export default function AssignCoursesPage() {
     const token = localStorage.getItem("token");
     try {
       // Assuming a backend endpoint structure for assignments
-      const res = await fetch(`http://localhost:8080/api/teachers/${selectedTeacher}/courses/${selectedCourse}`, {
+      const res = await fetch(`${API_BASE_URL}/api/teachers/${selectedTeacher}/courses/${selectedCourse}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

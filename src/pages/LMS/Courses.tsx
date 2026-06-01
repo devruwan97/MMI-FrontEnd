@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import PageMeta from "../../components/common/PageMeta";
+import { API_BASE_URL } from "../../api/Api";
 
 export default function CoursesPage() {
   const [courses, setCourses] = useState<any[]>([]);
-  const [selected, setSelected] = useState("All");
+  const [selected] = useState("All");
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
 
@@ -13,7 +14,7 @@ export default function CoursesPage() {
       try {
         const token = localStorage.getItem("token");
 
-        const res = await fetch("http://localhost:8080/api/courses", {
+        const res = await fetch(`${API_BASE_URL}/api/courses`, {
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,

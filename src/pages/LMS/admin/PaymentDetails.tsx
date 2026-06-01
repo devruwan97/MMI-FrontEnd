@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import PageMeta from "../../../components/common/PageMeta";
-import { getAuthHeaders } from "../../../api/Api";
+import { API_BASE_URL, getAuthHeaders } from "../../../api/Api";
 
 export default function PaymentDetailsPage() {
   const [payments, setPayments] = useState<any[]>([]);
@@ -10,7 +10,7 @@ export default function PaymentDetailsPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await fetch("http://localhost:8080/api/payments", {
+        const res = await fetch(`${API_BASE_URL}/api/payments`, {
           headers: getAuthHeaders(),
         });
 
@@ -75,7 +75,7 @@ export default function PaymentDetailsPage() {
   const handleStatusUpdate = async (id: number, newStatus: string) => {
     try {
       const res = await fetch(
-        `http://localhost:8080/api/payments/${id}?status=${newStatus}`,
+        `${API_BASE_URL}/api/payments/${id}?status=${newStatus}`,
         {
           method: "PUT",
           headers: getAuthHeaders(),

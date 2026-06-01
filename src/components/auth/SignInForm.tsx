@@ -6,11 +6,12 @@ import Input from "../form/input/InputField";
 import Button from "../ui/button/Button";
 import { Modal } from "../ui/modal";
 import { useModal } from "../../hooks/useModal";
+import { API_BASE_URL } from "../../api/Api";
 
 export default function SignInForm() {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
-  const [isChecked, setIsChecked] = useState(false);
+  const [isChecked] = useState(false);
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
   const [loading, setLoading] = useState(false);
@@ -38,7 +39,7 @@ export default function SignInForm() {
     setLoading(true);
 
     try {
-      const res = await fetch("http://localhost:8080/api/auth/login", {
+      const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

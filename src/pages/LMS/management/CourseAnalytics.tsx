@@ -14,6 +14,7 @@ import {
     LineChart,
     Line,
 } from "recharts";
+import { API_BASE_URL } from "../../../api/Api";
 
 interface Course {
     id: number;
@@ -39,7 +40,7 @@ export default function CourseAnalytics() {
     // ================= LOAD COURSES =================
     useEffect(() => {
         const fetchCourses = async () => {
-            const res = await fetch("http://localhost:8080/api/courses");
+            const res = await fetch(`${API_BASE_URL}/api/courses`);
             const data = await res.json();
             setCourses(data);
         };
@@ -63,7 +64,7 @@ export default function CourseAnalytics() {
                 setLoading(true);
 
                 const res = await fetch(
-                    `http://localhost:8080/api/enrollments/course/${selectedCourse}`
+                    `${API_BASE_URL}/api/enrollments/course/${selectedCourse}`
                 );
 
                 const data = await res.json();
