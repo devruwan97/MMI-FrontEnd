@@ -20,24 +20,17 @@ export default function CreateUserPage() {
   });
 
   const [loading, setLoading] = useState(false);
-
   const [bulkFile, setBulkFile] = useState<File | null>(null);
   const [bulkLoading, setBulkLoading] = useState(false);
 
-  const handleChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
-    >
-  ) => {
-    const { name, value } = e.target;
-
-    setForm((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+  const handleChange = (e: any) => {
+    setForm({
+      ...form,
+      [e.target.name]: e.target.value,
+    });
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: any) => {
     e.preventDefault();
     setLoading(true);
 
@@ -59,7 +52,7 @@ export default function CreateUserPage() {
         }),
       });
 
-      if (!userRes.ok) throw new Error("User creation failed");
+      if (!userRes.ok) throw new Error();
 
       const userData = await userRes.json();
       const userId = userData.id;
@@ -96,8 +89,7 @@ export default function CreateUserPage() {
 
       alert("User created successfully");
       navigate("/admin/manage-users");
-    } catch (err) {
-      console.error(err);
+    } catch {
       alert("Error creating user");
     } finally {
       setLoading(false);
@@ -113,7 +105,7 @@ export default function CreateUserPage() {
 
     try {
       const formData = new FormData();
-      formData.append("file", bulkFile); // MUST match @RequestParam("file")
+      formData.append("file", bulkFile);
 
       const res = await fetch(`${API_BASE_URL}/api/users/bulk`, {
         method: "POST",
@@ -123,15 +115,11 @@ export default function CreateUserPage() {
         body: formData,
       });
 
-      if (!res.ok) {
-        const msg = await res.text();
-        throw new Error(msg || "Bulk upload failed");
-      }
+      if (!res.ok) throw new Error();
 
       alert("Bulk users created successfully!");
       setBulkFile(null);
-    } catch (err) {
-      console.error(err);
+    } catch {
       alert("Bulk upload failed");
     } finally {
       setBulkLoading(false);
@@ -142,142 +130,193 @@ export default function CreateUserPage() {
     <>
       <PageMeta title="Create User | Admin" description="Create new user" />
 
-      <div className="max-w-xl mx-auto bg-white dark:bg-gray-900 p-6 rounded-2xl border border-gray-200 dark:border-gray-800">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-950 py-10 px-4 flex justify-center">
 
-        {/* BULK UPLOAD SECTION */}
-        <div className="mb-6 p-4 border rounded-xl bg-gray-50 dark:bg-gray-800">
-          <h2 className="font-bold mb-2">Bulk Import Users (Excel)</h2>
+        <div className="w-full max-w-3xl space-y-6">
 
-          <input
-            type="file"
-            accept=".xlsx"
-            onChange={(e) => setBulkFile(e.target.files?.[0] || null)}
-            className="mb-2"
-          />
+          {/* BULK UPLOAD CARD */}
+          <div className="bg-white dark:bg-gray-900 p-6 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-lg">
+            <h2 className="text-lg font-bold text-gray-800 dark:text-white mb-3">
+              Bulk Import Users
+            </h2>
 
-          <button
-            type="button"
-            onClick={handleBulkUpload}
-            disabled={!bulkFile || bulkLoading}
-            className="bg-blue-600 text-white px-4 py-2 rounded"
-          >
-            {bulkLoading ? "Uploading..." : "Upload Excel"}
-          </button>
+            <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
 
-          <p className="text-xs text-gray-500 mt-2">
-            Columns required in Excel: name, email, password, role, phone
-          </p>
+              <input
+                type="file"
+                accept=".xlsx"
+                onChange={(e) =>
+                  setBulkFile(e.target.files?.[0] || null)
+                }
+                className="text-sm"
+              />
+
+              <button
+                type="button"
+                onClick={handleBulkUpload}
+                disabled={!bulkFile || bulkLoading}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm transition"
+              >
+                {bulkLoading ? "Uploading..." : "Upload Excel"}
+              </button>
+            </div>
+
+            <p className="text-xs text-gray-500 mt-3">
+              Required columns: name, email, password, role, phone
+            </p>
+          </div>
+
+          {/* MAIN FORM CARD */}
+          <div className="bg-white dark:bg-gray-900 p-8 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-xl">
+
+            <h1 className="text-2xl font-bold text-gray-800 dark:text-white mb-6">
+              Create New User
+            </h1>
+
+            <form onSubmit={handleSubmit} className="space-y-5">
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+                <input
+                  name="name"
+                  placeholder="Full Name"
+                  value={form.name}
+                  onChange={handleChange}
+                  className="input"
+                />
+
+                <input
+                  name="email"
+                  placeholder="Email Address"
+                  value={form.email}
+                  onChange={handleChange}
+                  className="input"
+                />
+
+              </div>
+
+              <input
+                name="passwordHash"
+                type="password"
+                placeholder="Password"
+                value={form.passwordHash}
+                onChange={handleChange}
+                className="input"
+              />
+
+              <select
+                name="role"
+                value={form.role}
+                onChange={handleChange}
+                className="input"
+              >
+                <option value="student">Student</option>
+                <option value="teacher">Teacher</option>
+                <option value="admin">Admin</option>
+                <option value="management">Management</option>
+              </select>
+
+              <input
+                name="phone"
+                placeholder="Phone Number"
+                value={form.phone}
+                onChange={handleChange}
+                className="input"
+              />
+
+              {/* STUDENT */}
+              {form.role === "student" && (
+                <div className="space-y-3 p-4 rounded-xl bg-blue-50 dark:bg-gray-800 border">
+                  <p className="text-sm font-semibold text-blue-600">
+                    Student Details
+                  </p>
+
+                  <input
+                    name="dateOfBirth"
+                    type="date"
+                    value={form.dateOfBirth}
+                    onChange={handleChange}
+                    className="input"
+                  />
+
+                  <input
+                    name="parentName"
+                    placeholder="Parent Name"
+                    value={form.parentName}
+                    onChange={handleChange}
+                    className="input"
+                  />
+
+                  <textarea
+                    name="address"
+                    placeholder="Address"
+                    value={form.address}
+                    onChange={handleChange}
+                    className="input h-24 resize-none"
+                  />
+                </div>
+              )}
+
+              {/* TEACHER */}
+              {form.role === "teacher" && (
+                <div className="space-y-3 p-4 rounded-xl bg-green-50 dark:bg-gray-800 border">
+                  <p className="text-sm font-semibold text-green-600">
+                    Teacher Details
+                  </p>
+
+                  <textarea
+                    name="qualifications"
+                    placeholder="Qualifications"
+                    value={form.qualifications}
+                    onChange={handleChange}
+                    className="input h-24 resize-none"
+                  />
+
+                  <textarea
+                    name="bio"
+                    placeholder="Bio"
+                    value={form.bio}
+                    onChange={handleChange}
+                    className="input h-24 resize-none"
+                  />
+                </div>
+              )}
+
+              <button
+                disabled={loading}
+                className="w-full bg-brand-500 hover:bg-brand-600 text-white font-semibold py-3 rounded-xl transition shadow-md"
+              >
+                {loading ? "Creating..." : "Create User"}
+              </button>
+
+            </form>
+          </div>
+
         </div>
-
-        <h1 className="text-xl font-bold mb-4">Create New User</h1>
-
-        {/* FORM */}
-        <form onSubmit={handleSubmit} className="space-y-4">
-
-          <input
-            name="name"
-            placeholder="Name"
-            value={form.name}
-            onChange={handleChange}
-            className="w-full p-2 border rounded"
-          />
-
-          <input
-            name="email"
-            placeholder="Email"
-            value={form.email}
-            onChange={handleChange}
-            className="w-full p-2 border rounded"
-          />
-
-          <input
-            name="passwordHash"
-            type="password"
-            placeholder="Password"
-            value={form.passwordHash}
-            onChange={handleChange}
-            className="w-full p-2 border rounded"
-          />
-
-          <select
-            name="role"
-            value={form.role}
-            onChange={handleChange}
-            className="w-full p-2 border rounded"
-          >
-            <option value="student">student</option>
-            <option value="teacher">teacher</option>
-            <option value="admin">admin</option>
-            <option value="management">management</option>
-          </select>
-
-          <input
-            name="phone"
-            placeholder="Phone"
-            value={form.phone}
-            onChange={handleChange}
-            className="w-full p-2 border rounded"
-          />
-
-          {/* STUDENT FIELDS */}
-          {form.role === "student" && (
-            <>
-              <input
-                name="dateOfBirth"
-                type="date"
-                value={form.dateOfBirth}
-                onChange={handleChange}
-                className="w-full p-2 border rounded"
-              />
-
-              <input
-                name="parentName"
-                placeholder="Parent Name"
-                value={form.parentName}
-                onChange={handleChange}
-                className="w-full p-2 border rounded"
-              />
-
-              <textarea
-                name="address"
-                placeholder="Address"
-                value={form.address}
-                onChange={handleChange}
-                className="w-full p-2 border rounded"
-              />
-            </>
-          )}
-
-          {/* TEACHER FIELDS */}
-          {form.role === "teacher" && (
-            <>
-              <textarea
-                name="qualifications"
-                placeholder="Qualifications"
-                value={form.qualifications}
-                onChange={handleChange}
-                className="w-full p-2 border rounded"
-              />
-
-              <textarea
-                name="bio"
-                placeholder="Bio"
-                value={form.bio}
-                onChange={handleChange}
-                className="w-full p-2 border rounded"
-              />
-            </>
-          )}
-
-          <button
-            disabled={loading}
-            className="w-full bg-brand-500 text-white p-2 rounded"
-          >
-            {loading ? "Creating..." : "Create User"}
-          </button>
-
-        </form>
       </div>
+
+      <style>{`
+        .input {
+          width: 100%;
+          padding: 12px 14px;
+          border-radius: 12px;
+          border: 1px solid #e5e7eb;
+          background: #f9fafb;
+          outline: none;
+          transition: 0.2s;
+        }
+
+        .dark .input {
+          background: #1f2937;
+          border-color: #374151;
+          color: white;
+        }
+
+        .input:focus {
+          border-color: #3b82f6;
+          box-shadow: 0 0 0 2px rgba(59,130,246,0.2);
+        }
+      `}</style>
     </>
   );
 }

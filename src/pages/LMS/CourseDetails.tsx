@@ -3,19 +3,125 @@ import { useEffect, useState } from "react";
 import PageMeta from "../../components/common/PageMeta";
 import { API_BASE_URL } from "../../api/Api";
 
+function UnitCard({ unit }: any) {
+  const [open, setOpen] = useState(false);
+  const [materials, setMaterials] = useState<any[]>(unit.materials || []);
+  const [file, setFile] = useState<File | null>(null);
+
+  const getToken = () => localStorage.getItem("token");
+
+  const uploadMaterial = async () => {
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const res = await fetch(
+      `${API_BASE_URL}/api/units/${unit.id}/materials`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${getToken()}`,
+        },
+        body: formData,
+      }
+    );
+
+    if (!res.ok) return;
+
+    const data = await res.json();
+    setMaterials((prev) => [...prev, data]);
+    setFile(null);
+  };
+
+  const deleteMaterial = async (id: number) => {
+    const res = await fetch(`${API_BASE_URL}/api/materials/${id}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${getToken()}`,
+      },
+    });
+
+    if (!res.ok) return;
+
+    setMaterials((prev) => prev.filter((m) => m.id !== id));
+  };
+
+  return (
+    <div className="border rounded-lg p-4">
+      <button
+        onClick={() => setOpen(!open)}
+        className="w-full flex justify-between font-semibold"
+      >
+        <span>
+          {unit.unitCode} - {unit.unitName}
+        </span>
+        <span>{open ? "▲" : "▼"}</span>
+      </button>
+
+      {open && (
+        <div className="mt-4 space-y-3">
+          <p className="text-sm text-gray-500">
+            {unit.description}
+          </p>
+
+          <div className="space-y-2">
+            {materials.map((m: any) => (
+              <div
+                key={m.id}
+                className="flex justify-between border p-2 rounded"
+              >
+                <a
+                  href={m.url}
+                  target="_blank"
+                  className="text-blue-500"
+                >
+                  {m.title}
+                </a>
+
+                <button
+                  onClick={() => deleteMaterial(m.id)}
+                  className="text-red-500 text-sm"
+                >
+                  Delete
+                </button>
+              </div>
+            ))}
+          </div>
+
+          <div className="flex gap-2 items-center mt-3">
+            <input
+              type="file"
+              accept="application/pdf"
+              onChange={(e) =>
+                setFile(e.target.files?.[0] || null)
+              }
+            />
+
+            <button
+              onClick={uploadMaterial}
+              className="bg-green-500 text-white px-3 py-1 rounded"
+            >
+              Add Material
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function CourseDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
 
   const [course, setCourse] = useState<any>(null);
+  const [units, setUnits] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   const getToken = () => localStorage.getItem("token");
-
   const userRole = localStorage.getItem("role");
   const isAdmin = userRole === "admin";
-
-  const studentId = localStorage.getItem("userId"); // 👈 student id from localStorage
 
   useEffect(() => {
     const fetchCourse = async () => {
@@ -24,25 +130,15 @@ export default function CourseDetails() {
           `${API_BASE_URL}/api/courses/${id}`,
           {
             headers: {
-              "Content-Type": "application/json",
               Authorization: `Bearer ${getToken()}`,
             },
           }
         );
 
-        if (res.status === 401 || res.status === 403) {
-          throw new Error("Unauthorized - please login again");
-        }
-
-        if (!res.ok) {
-          throw new Error("Failed to fetch course");
-        }
-
         const data = await res.json();
         setCourse(data);
-      } catch (err) {
-        console.error("Error fetching course:", err);
-        alert("Failed to load course");
+      } catch {
+        setCourse(null);
       } finally {
         setLoading(false);
       }
@@ -51,53 +147,30 @@ export default function CourseDetails() {
     fetchCourse();
   }, [id]);
 
-  // ---------------- ENROLL STUDENT ----------------
-  const handleEnroll = async () => {
-    try {
-      if (!studentId) {
-        alert("Please login first");
-        return;
+  useEffect(() => {
+    const fetchUnits = async () => {
+      try {
+        const res = await fetch(
+          `${API_BASE_URL}/api/courses/${id}/units`,
+          {
+            headers: {
+              Authorization: `Bearer ${getToken()}`,
+            },
+          }
+        );
+
+        const data = await res.json();
+        setUnits(data?.units || []);
+      } catch {
+        setUnits([]);
       }
+    };
 
-      const res = await fetch(
-        `${API_BASE_URL}/api/enrollments`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${getToken()}`,
-          },
-          body: JSON.stringify({
-            studentId: Number(studentId),
-            courseId: Number(course.id),
-          }),
-        }
-      );
+    fetchUnits();
+  }, [id]);
 
-      if (res.status === 401 || res.status === 403) {
-        throw new Error("Unauthorized - please login again");
-      }
-
-      if (!res.ok) {
-        throw new Error("Enrollment failed");
-      }
-
-      const data = await res.json();
-      console.log("Enrollment success:", data);
-
-      alert("Successfully enrolled in course!");
-    } catch (err) {
-      console.error("Enrollment error:", err);
-      alert("Failed to enroll in course");
-    }
-  };
-
-  // ---------------- DELETE COURSE (ADMIN) ----------------
   const handleDelete = async () => {
-    const confirmDelete = window.confirm(
-      "Are you sure you want to delete this course?"
-    );
-
+    const confirmDelete = window.confirm("Delete this course?");
     if (!confirmDelete) return;
 
     try {
@@ -111,20 +184,10 @@ export default function CourseDetails() {
         }
       );
 
-      if (res.status === 401 || res.status === 403) {
-        throw new Error("Unauthorized - cannot delete");
-      }
+      if (!res.ok) return;
 
-      if (!res.ok) {
-        throw new Error("Delete failed");
-      }
-
-      alert("Course deleted successfully");
       navigate("/courses");
-    } catch (err) {
-      console.error("Delete failed:", err);
-      alert("Error deleting course");
-    }
+    } catch {}
   };
 
   if (loading) {
@@ -138,14 +201,9 @@ export default function CourseDetails() {
   if (!course) {
     return (
       <div className="p-10 text-center">
-        <p className="text-gray-500 dark:text-gray-400">
-          Course not found.
-        </p>
-        <Link
-          to="/courses"
-          className="mt-4 inline-block text-brand-500 hover:underline"
-        >
-          ← Back to Courses
+        Course not found
+        <Link to="/courses" className="block text-brand-500 mt-3">
+          Back
         </Link>
       </div>
     );
@@ -160,124 +218,75 @@ export default function CourseDetails() {
 
       <Link
         to="/courses"
-        className="mb-4 inline-flex items-center gap-1 text-sm text-brand-500 hover:underline"
+        className="text-sm text-brand-500 mb-3 inline-block"
       >
         ← Back to Courses
       </Link>
 
-      <div className="rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-800 mb-6">
+      <div className="rounded-2xl overflow-hidden border mb-6">
         <img
           src="https://info.ehl.edu/hubfs/Blog-EHL-Insights/Blog-Header-EHL-Insights/e_learning_course.jpg"
-          alt={course.title}
           className="h-56 w-full object-cover"
         />
 
-        <div className="p-6 bg-white dark:bg-gray-900">
-          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-            <div>
-              <span className="text-xs font-medium text-brand-500 bg-brand-50 px-2 py-0.5 rounded-full">
-                {course.category}
-              </span>
+        <div className="p-6 bg-white dark:bg-gray-900 flex justify-between">
+          <div>
+            <span className="text-xs text-brand-500 bg-brand-50 px-2 py-1 rounded">
+              {course.category}
+            </span>
 
-              <h1 className="mt-2 text-2xl font-bold text-gray-800 dark:text-white">
-                {course.title}
-              </h1>
+            <h1 className="text-2xl font-bold mt-2">
+              {course.title}
+            </h1>
 
-              <p className="mt-2 text-gray-500 dark:text-gray-400">
-                {course.description}
-              </p>
-            </div>
+            <p className="text-gray-500 mt-2">
+              {course.description}
+            </p>
+          </div>
 
-            <div className="shrink-0 rounded-xl border border-gray-200 dark:border-gray-700 p-4 text-center min-w-[140px]">
-              <p className="text-3xl font-bold text-brand-600">
-                ${course.fee}
-              </p>
+          <div className="border p-4 rounded-xl min-w-[140px] text-center">
+            <p className="text-3xl font-bold text-brand-600">
+              ${course.fee}
+            </p>
 
-              <p className="text-xs text-gray-400">per term</p>
+            <p className="text-xs text-gray-400">per term</p>
 
-              {/* ---------------- ENROLL BUTTON ---------------- */}
-              <button
-                onClick={handleEnroll}
-                className="mt-3 w-full rounded-lg bg-brand-500 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-600"
-              >
-                Enrol Now
-              </button>
+            <p className="text-xs mt-2 text-gray-400">
+              Capacity: {course.capacity}
+            </p>
 
-              <p className="mt-2 text-xs text-gray-400">
-                Capacity: {course.capacity}
-              </p>
+            {isAdmin && (
+              <div className="mt-3 space-y-2">
+                <button
+                  onClick={() =>
+                    navigate(`/courses/edit/${course.id}`)
+                  }
+                  className="w-full bg-blue-500 text-white text-xs py-1 rounded"
+                >
+                  Edit
+                </button>
 
-              {/* ---------------- ADMIN CONTROLS ---------------- */}
-              {isAdmin && (
-                <div className="mt-3 flex flex-col gap-2">
-                  <button
-                    onClick={() =>
-                      navigate(`/courses/edit/${course.id}`)
-                    }
-                    className="w-full rounded-lg bg-blue-500 px-3 py-1 text-xs text-white hover:bg-blue-600"
-                  >
-                    Edit Course
-                  </button>
-
-                  <button
-                    onClick={handleDelete}
-                    className="w-full rounded-lg bg-red-500 px-3 py-1 text-xs text-white hover:bg-red-600"
-                  >
-                    Delete Course
-                  </button>
-                </div>
-              )}
-            </div>
+                <button
+                  onClick={handleDelete}
+                  className="w-full bg-red-500 text-white text-xs py-1 rounded"
+                >
+                  Delete
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-12 gap-6">
-        <div className="col-span-12 lg:col-span-7">
-          <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6">
-            <h2 className="text-lg font-semibold mb-4">
-              Course Details
-            </h2>
+      <div className="rounded-2xl border p-6 bg-white dark:bg-gray-900 mb-6">
+        <h2 className="text-lg font-semibold mb-4">
+          Course Units
+        </h2>
 
-            <p className="text-gray-500">
-              No unit data available yet.
-            </p>
-          </div>
-        </div>
-
-        <div className="col-span-12 lg:col-span-5 space-y-6">
-          {course.createdBy && (
-            <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6">
-              <h2 className="text-lg font-semibold mb-4">
-                Course Creator
-              </h2>
-
-              <div className="flex items-center gap-3">
-                <div className="h-12 w-12 rounded-full bg-brand-500 flex items-center justify-center text-white font-bold text-lg">
-                  {course.createdBy.name?.charAt(0)}
-                </div>
-
-                <div>
-                  <p className="font-semibold">
-                    {course.createdBy.name}
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    {course.createdBy.email}
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6">
-            <h2 className="text-lg font-semibold mb-4">
-              Class Schedule
-            </h2>
-
-            <p className="text-sm text-gray-400">
-              No schedule available yet.
-            </p>
-          </div>
+        <div className="space-y-4">
+          {units.map((unit: any) => (
+            <UnitCard key={unit.id} unit={unit} />
+          ))}
         </div>
       </div>
     </>
