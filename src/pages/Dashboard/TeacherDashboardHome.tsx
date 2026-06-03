@@ -12,6 +12,7 @@ import {
   YAxis,
   Legend,
 } from "recharts";
+import { API_BASE_URL } from "../../api/Api";
 
 interface TeacherDashboardDTO {
   assignedUnits: number;
@@ -28,7 +29,7 @@ export default function TeacherDashboardHome() {
     const fetchTeacherData = async () => {
       try {
         const token = localStorage.getItem("token");
-        const res = await fetch("http://localhost:8080/api/teacher/stats", {
+        const res = await fetch(`${API_BASE_URL}/api/teacher/stats`, {
           headers: {
             ...(token && { Authorization: `Bearer ${token}` }),
           },

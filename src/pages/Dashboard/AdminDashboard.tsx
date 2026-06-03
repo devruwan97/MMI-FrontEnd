@@ -8,6 +8,7 @@ import {
   Cell,
   Legend,
 } from "recharts";
+import { API_BASE_URL } from "../../api/Api";
 
 interface AdminDashboardDTO {
   totalUsers: number;
@@ -25,7 +26,7 @@ export default function AdminDashboard() {
     const fetchAdminData = async () => {
       try {
         const token = localStorage.getItem("token");
-        const res = await fetch("http://localhost:8080/api/admin/stats", {
+        const res = await fetch(`${API_BASE_URL}/api/admin/stats`, {
           headers: {
             ...(token && { Authorization: `Bearer ${token}` }),
           },

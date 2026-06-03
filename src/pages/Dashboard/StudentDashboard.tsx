@@ -53,8 +53,8 @@ export default function StudentDashboard() {
         };
 
         const [userRes, unitsRes] = await Promise.all([
-          fetch(`http://localhost:8080/api/users/${userId}`, { headers }),
-          fetch(`http://localhost:8080/api/courses/student/${userId}/units`, { headers }),
+          fetch(`${API_BASE_URL}/api/users/${userId}`, { headers }),
+          fetch(`${API_BASE_URL}/api/courses/student/${userId}/units`, { headers }),
         ]);
 
         if (userRes.ok) {
