@@ -1,5 +1,13 @@
 import { useEffect, useState } from "react";
 import PageMeta from "../../components/common/PageMeta";
+import {
+  PieChart,
+  Pie,
+  Cell,
+  ResponsiveContainer,
+  Tooltip,
+  Legend,
+} from "recharts";
 
 interface Material {
   id: number;
@@ -21,29 +29,57 @@ interface Unit {
 
 export default function StudentDashboard() {
   const [units, setUnits] = useState<Unit[]>([]);
+  const [studentInfo, setStudentInfo] = useState({ name: "Scholar", email: "" });
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchUnits = async () => {
+    const fetchDashboardData = async () => {
       try {
+        setLoading(true);
+        setError(null);
         const token = localStorage.getItem("token");
+        const userId = localStorage.getItem("userId");
 
-        const res = await fetch("http://localhost:8080/api/units", {
-          headers: {
-            ...(token && { Authorization: `Bearer ${token}` }),
-          },
-        });
+        if (!token || !userId) {
+          setError("Student session not found. Please log in again.");
+          return;
+        }
 
-        const data = await res.json();
-        setUnits(data.units || data);
-      } catch (err) {
-        console.error(err);
+        const headers = {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        };
+
+        // Fetch user profile and their specific units in parallel
+        const [userRes, unitsRes] = await Promise.all([
+          fetch(`http://localhost:8080/api/users/${userId}`, { headers }),
+          fetch(`http://localhost:8080/api/students/${userId}/units`, { headers }),
+        ]);
+
+        if (userRes.ok) {
+          const userData = await userRes.json();
+          setStudentInfo({ name: userData.name, email: userData.email });
+        }
+
+        if (unitsRes.ok) {
+          const unitsData = await unitsRes.json();
+          // Handle cases where response might be a raw array or wrapped in a 'units' property
+          setUnits(Array.isArray(unitsData) ? unitsData : unitsData.units || []);
+        } else if (unitsRes.status === 403) {
+          throw new Error("Access Denied (403): You do not have permission to view these academic records. Check your student role assignment.");
+        } else {
+          throw new Error(`Server Sync Failed: ${unitsRes.status}`);
+        }
+      } catch (err: any) {
+        console.error("Dashboard Sync Error:", err);
+        setError(err.message || "Unable to connect to the learning vault.");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchUnits();
+    fetchDashboardData();
   }, []);
 
   // ================= CURRENT SEMESTER FILTER =================
@@ -67,164 +103,147 @@ export default function StudentDashboard() {
     (u) => new Date(u.termEndDate).getTime() < new Date().getTime()
   );
 
-  if (loading) {
-    return (
-      <div className="p-10 text-center text-gray-500">Loading dashboard...</div>
-    );
-  }
+  if (loading) return <div className="p-10 text-center text-gray-500 italic">Synchronizing academic records...</div>;
+  if (error) return <div className="p-10 text-center text-red-500 font-medium">Error: {error}</div>;
+
+  const chartData = [
+    { name: "Completed", value: completedUnits.length, color: "#10b981" },
+    { name: "In Progress", value: currentUnits.length, color: "#4f46e5" },
+    { name: "Upcoming", value: upcomingUnits.length, color: "#f59e0b" },
+  ];
 
   return (
     <>
-      <PageMeta
-        title="Student Dashboard"
-        description="Student learning portal"
-      />
+      <PageMeta title="Student Dashboard" description="Student learning portal" />
 
       <div className="p-6 space-y-6">
-
         {/* ================= HEADER ================= */}
-        <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-6 rounded-2xl shadow">
-          <h1 className="text-2xl font-bold">Welcome Back 🎓</h1>
-          <p className="text-sm opacity-80">
-            Track your learning progress & current semester units
-          </p>
+        <div className="flex flex-col md:flex-row md:items-center justify-between bg-gradient-to-r from-indigo-700 via-purple-700 to-indigo-800 text-white p-8 rounded-3xl shadow-xl">
+          <div>
+            <h1 className="text-3xl font-extrabold tracking-tight">Welcome Back, {studentInfo.name}! 🎓</h1>
+            <p className="text-indigo-100 mt-1 text-sm font-medium opacity-80">{studentInfo.email}</p>
+            <p className="text-indigo-100 mt-3 max-w-md">
+              You have {currentUnits.length} active units this term. Keep up the great momentum!
+            </p>
+          </div>
+          <div className="mt-6 md:mt-0">
+            <div className="bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/20">
+              <p className="text-xs uppercase font-bold opacity-70">Next Milestone</p>
+              <p className="text-lg font-semibold">Term End: {currentUnits[0]?.termEndDate || "TBD"}</p>
+            </div>
+          </div>
         </div>
 
         {/* ================= STATS CARDS ================= */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-
-          <div className="p-5 bg-white rounded-xl shadow border">
-            <h3 className="text-gray-500 text-sm">Current Semester Units</h3>
-            <p className="text-2xl font-bold text-indigo-600">
-              {currentUnits.length}
-            </p>
-          </div>
-
-          <div className="p-5 bg-white rounded-xl shadow border">
-            <h3 className="text-gray-500 text-sm">Upcoming Units</h3>
-            <p className="text-2xl font-bold text-yellow-500">
-              {upcomingUnits.length}
-            </p>
-          </div>
-
-          <div className="p-5 bg-white rounded-xl shadow border">
-            <h3 className="text-gray-500 text-sm">Completed Units</h3>
-            <p className="text-2xl font-bold text-green-600">
-              {completedUnits.length}
-            </p>
-          </div>
+          {[
+            { label: "Active Units", val: currentUnits.length, color: "text-indigo-600", bg: "bg-indigo-50" },
+            { label: "Upcoming", val: upcomingUnits.length, color: "text-amber-500", bg: "bg-amber-50" },
+            { label: "Completed", val: completedUnits.length, color: "text-emerald-600", bg: "bg-emerald-50" },
+          ].map((stat, i) => (
+            <div key={i} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-all">
+              <p className="text-sm font-medium text-gray-500 uppercase tracking-wider">{stat.label}</p>
+              <div className={`text-3xl font-black ${stat.color} mt-2`}>{stat.val}</div>
+              <div className={`mt-3 h-1 w-12 rounded-full ${stat.bg.replace('bg-', 'bg-')}`}></div>
+            </div>
+          ))}
         </div>
 
-        {/* ================= CURRENT SEMESTER ================= */}
-        <div className="bg-white rounded-2xl shadow p-5 border">
-          <h2 className="text-lg font-semibold mb-4">
-            📚 Current Semester Units
-          </h2>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* ================= CURRENT UNITS ================= */}
+          <div className="lg:col-span-2 space-y-6">
+            <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+                  <span>📚</span> Current Semester
+                </h2>
+                <button className="text-sm font-semibold text-indigo-600 hover:text-indigo-700">View All</button>
+              </div>
 
-          {currentUnits.length === 0 ? (
-            <p className="text-gray-500">No active semester units</p>
-          ) : (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {currentUnits.map((unit) => (
-                <div
-                  key={unit.id}
-                  className="border rounded-xl p-4 hover:shadow-lg transition"
-                >
-                  <div className="text-xs text-gray-500">
-                    {unit.unitCode}
-                  </div>
-
-                  <h3 className="font-semibold text-gray-800">
-                    {unit.unitName}
-                  </h3>
-
-                  <p className="text-sm text-gray-500 mt-1 line-clamp-2">
-                    {unit.description}
-                  </p>
-
-                  <div className="mt-3 text-xs text-indigo-600 font-medium">
-                    {unit.termName}
-                  </div>
+              {currentUnits.length === 0 ? (
+                <div className="text-center py-10 text-gray-400 italic bg-gray-50 rounded-xl">
+                  No active units found for this semester.
                 </div>
+              ) : (
+                <div className="grid md:grid-cols-2 gap-4">
+                  {currentUnits.map((unit) => (
+                    <div key={unit.id} className="group border border-gray-100 rounded-2xl p-5 hover:border-indigo-200 hover:bg-indigo-50/30 transition-all cursor-pointer">
+                      <div className="flex justify-between items-start mb-3">
+                        <span className="px-2 py-1 bg-gray-100 text-[10px] font-bold text-gray-500 rounded uppercase tracking-tighter">
+                          {unit.unitCode}
+                        </span>
+                        <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                      </div>
+                      <h3 className="font-bold text-gray-800 group-hover:text-indigo-700 transition-colors">
+                        {unit.unitName}
+                      </h3>
+                      <p className="text-xs text-gray-500 mt-2 line-clamp-2 leading-relaxed">
+                        {unit.description}
+                      </p>
+                      <div className="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between text-[11px] font-bold text-indigo-600 uppercase">
+                        <span>{unit.termName}</span>
+                        <span className="opacity-0 group-hover:opacity-100 transition-opacity">Enter Unit →</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* ================= QUICK ACTIONS ================= */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {[
+                { label: "My Grades", icon: "📊", color: "hover:bg-blue-50" },
+                { label: "Schedule", icon: "📅", color: "hover:bg-purple-50" },
+                { label: "Materials", icon: "📂", color: "hover:bg-emerald-50" },
+                { label: "Support", icon: "💬", color: "hover:bg-rose-50" },
+              ].map((act, i) => (
+                <button key={i} className={`p-4 bg-white rounded-2xl border border-gray-100 shadow-sm transition-all flex flex-col items-center gap-2 group ${act.color}`}>
+                  <span className="text-2xl group-hover:scale-110 transition-transform">{act.icon}</span>
+                  <span className="text-xs font-bold text-gray-600">{act.label}</span>
+                </button>
               ))}
             </div>
-          )}
-        </div>
+          </div>
 
-        {/* ================= SIMPLE CALENDAR VIEW ================= */}
-        <div className="bg-white rounded-2xl shadow p-5 border">
-          <h2 className="text-lg font-semibold mb-4">📅 Semester Timeline</h2>
-
-          <div className="space-y-3">
-            {currentUnits.slice(0, 5).map((unit) => (
-              <div
-                key={unit.id}
-                className="flex justify-between items-center p-3 bg-gray-50 rounded-lg"
-              >
-                <div>
-                  <p className="font-medium">{unit.unitName}</p>
-                  <p className="text-xs text-gray-500">{unit.unitCode}</p>
-                </div>
-
-                <span className="text-xs bg-indigo-100 text-indigo-600 px-3 py-1 rounded-full">
-                  Active
-                </span>
+          {/* ================= RIGHT COLUMN: PROGRESS & TIMELINE ================= */}
+          <div className="space-y-6">
+            {/* PROGRESS CHART */}
+            <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
+              <h2 className="text-lg font-bold text-gray-800 mb-4">Overall Progress</h2>
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie data={chartData} innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="value">
+                      {chartData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                    <Legend iconType="circle" />
+                  </PieChart>
+                </ResponsiveContainer>
               </div>
-            ))}
+            </div>
+
+            {/* TIMELINE */}
+            <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
+              <h2 className="text-lg font-bold text-gray-800 mb-4">📅 Semester Timeline</h2>
+              <div className="space-y-4">
+                {currentUnits.slice(0, 4).map((unit) => (
+                  <div key={unit.id} className="flex gap-4 items-start relative pb-4 last:pb-0">
+                    <div className="flex-none w-2 h-2 mt-1.5 rounded-full bg-indigo-500 z-10"></div>
+                    <div className="absolute left-[3.5px] top-4 w-[1px] h-full bg-gray-100 last:hidden"></div>
+                    <div className="flex-grow">
+                      <p className="text-sm font-bold text-gray-800 leading-none">{unit.unitName}</p>
+                      <p className="text-[10px] text-gray-400 mt-1 uppercase font-bold tracking-tight">Active Learning Node</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
-
-        {/* ================= SIMPLE CHART UI ================= */}
-        <div className="bg-white rounded-2xl shadow p-5 border">
-          <h2 className="text-lg font-semibold mb-4">📊 Progress Overview</h2>
-
-          <div className="space-y-3">
-
-            <div>
-              <p className="text-sm">Completed</p>
-              <div className="w-full bg-gray-200 h-3 rounded-full">
-                <div
-                  className="bg-green-500 h-3 rounded-full"
-                  style={{
-                    width: `${
-                      (completedUnits.length / (units.length || 1)) * 100
-                    }%`,
-                  }}
-                />
-              </div>
-            </div>
-
-            <div>
-              <p className="text-sm">Current</p>
-              <div className="w-full bg-gray-200 h-3 rounded-full">
-                <div
-                  className="bg-indigo-500 h-3 rounded-full"
-                  style={{
-                    width: `${
-                      (currentUnits.length / (units.length || 1)) * 100
-                    }%`,
-                  }}
-                />
-              </div>
-            </div>
-
-            <div>
-              <p className="text-sm">Upcoming</p>
-              <div className="w-full bg-gray-200 h-3 rounded-full">
-                <div
-                  className="bg-yellow-500 h-3 rounded-full"
-                  style={{
-                    width: `${
-                      (upcomingUnits.length / (units.length || 1)) * 100
-                    }%`,
-                  }}
-                />
-              </div>
-            </div>
-
-          </div>
-        </div>
-
       </div>
     </>
   );
