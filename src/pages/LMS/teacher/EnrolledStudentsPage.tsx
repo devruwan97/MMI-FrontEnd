@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import PageMeta from "../../../components/common/PageMeta";
+import { API_BASE_URL } from "../../../api/Api";
 
 interface Course {
   id: number;
@@ -41,7 +42,7 @@ export default function TeacherEnrolledStudentsPage() {
 
       try {
         const res = await fetch(
-          `http://localhost:8080/api/teachers/${teacherId}/schedule/courses`,
+          `${API_BASE_URL}/api/teachers/${teacherId}/schedule/courses`,
           { headers }
         );
 
@@ -69,7 +70,7 @@ export default function TeacherEnrolledStudentsPage() {
           courses.map(async (course) => {
             try {
               const res = await fetch(
-                `http://localhost:8080/api/students/course/${course.id}`,
+                `${API_BASE_URL}/api/students/course/${course.id}`,
                 { headers }
               );
 

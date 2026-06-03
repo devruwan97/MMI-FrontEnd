@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import PageMeta from "../../../components/common/PageMeta";
+import { API_BASE_URL } from "../../../api/Api";
 
 interface Material {
   id: number;
@@ -50,7 +51,7 @@ export default function MyUnitsPage() {
         const token = localStorage.getItem("token");
 
         const res = await fetch(
-          `http://localhost:8080/api/courses/${courseId}/units`,
+          `${API_BASE_URL}/api/courses/${courseId}/units`,
           {
             headers: {
               ...(token && {

@@ -1,6 +1,7 @@
 import { useParams } from "react-router-dom";
 import { useEffect, useState, useCallback } from "react";
 import PageMeta from "../../../../components/common/PageMeta";
+import { API_BASE_URL } from "../../../../api/Api";
 
 interface Submission {
   id: number; // gradeId
@@ -36,20 +37,19 @@ export default function TeacherSubmissionsListPage() {
 
   const [marksInput, setMarksInput] = useState<Record<number, number>>({});
 
-  // ================= FETCH DATA (AUTO REFRESH CORE) =================
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
 
       const [gradesRes, gradedRes, pendingRes] = await Promise.all([
         fetch(
-          `http://localhost:8080/api/assessment-grades/assessment/${assessmentId}`
+          `${API_BASE_URL}/api/assessment-grades/assessment/${assessmentId}`
         ),
         fetch(
-          `http://localhost:8080/api/submissions/assessment/${assessmentId}/graded`
+          `${API_BASE_URL}/api/submissions/assessment/${assessmentId}/graded`
         ),
         fetch(
-          `http://localhost:8080/api/submissions/assessment/${assessmentId}/pending`
+          `${API_BASE_URL}/api/submissions/assessment/${assessmentId}/pending`
         )
       ]);
 
@@ -85,12 +85,10 @@ export default function TeacherSubmissionsListPage() {
     }
   }, [assessmentId]);
 
-  // ================= INITIAL LOAD =================
   useEffect(() => {
     if (assessmentId) fetchData();
   }, [assessmentId, fetchData]);
 
-  // ================= AUTO REFRESH ON RETURN =================
   useEffect(() => {
     const handleFocus = () => {
       if (assessmentId) fetchData();
@@ -119,8 +117,8 @@ export default function TeacherSubmissionsListPage() {
     try {
       const res = await fetch(
         isUpdate
-          ? `http://localhost:8080/api/assessment-grades/${gradeId}`
-          : `http://localhost:8080/api/assessment-grades`,
+          ? `${API_BASE_URL}/api/assessment-grades/${gradeId}`
+          : `${API_BASE_URL}/api/assessment-grades`,
         {
           method: isUpdate ? "PUT" : "POST",
           headers: {

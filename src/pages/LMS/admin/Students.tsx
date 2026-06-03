@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import PageMeta from "../../../components/common/PageMeta";
+import { API_BASE_URL } from "../../../api/Api";
 
 interface Student {
   id: number;
@@ -26,7 +27,7 @@ export default function StudentsPage() {
           throw new Error("No token found. Please login.");
         }
 
-        const res = await fetch("http://localhost:8080/api/students", {
+        const res = await fetch(`${API_BASE_URL}/api/students`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",

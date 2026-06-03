@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import PageMeta from "../../../components/common/PageMeta";
+import { API_BASE_URL } from "../../../api/Api";
 
 interface Enrollment {
   id: number | string;
@@ -34,7 +35,7 @@ export default function StudentEnrollmentsPage() {
         }
 
         const res = await fetch(
-          `http://localhost:8080/api/enrollments/student/${studentId}`,
+          `${API_BASE_URL}/api/enrollments/student/${studentId}`,
           {
             headers: {
               "Content-Type": "application/json",

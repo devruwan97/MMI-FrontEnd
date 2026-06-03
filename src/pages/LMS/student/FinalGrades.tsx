@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import PageMeta from "../../../components/common/PageMeta";
 import jsPDF from "jspdf";
+import { API_BASE_URL } from "../../../api/Api";
 
 interface StudentGrade {
   id: number;
@@ -31,7 +32,7 @@ export default function MyResultsPage() {
       return;
     }
 
-    fetch(`http://localhost:8080/api/grades/student/${userId}`, {
+    fetch(`${API_BASE_URL}/api/grades/student/${userId}`, {
       headers: {
         "Content-Type": "application/json",
         ...(token && { Authorization: `Bearer ${token}` }),

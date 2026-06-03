@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { API_BASE_URL } from "../../api/Api";
 
 export default function EditCourse() {
   const { id } = useParams();
@@ -14,7 +15,7 @@ export default function EditCourse() {
   });
 
   useEffect(() => {
-    fetch(`http://localhost:8080/api/courses/${id}`)
+    fetch(`${API_BASE_URL}/api/courses/${id}`)
       .then((res) => res.json())
       .then((data) => setForm(data));
   }, [id]);
@@ -26,7 +27,7 @@ export default function EditCourse() {
   const handleSubmit = async (e: any) => {
     e.preventDefault();
 
-    await fetch(`http://localhost:8080/api/courses/${id}`, {
+    await fetch(`${API_BASE_URL}/api/courses/${id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",

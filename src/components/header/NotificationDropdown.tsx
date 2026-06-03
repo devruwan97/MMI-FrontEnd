@@ -36,7 +36,7 @@ export default function NotificationDropdown() {
 
     try {
       const res = await fetch(
-        `http://localhost:8080/api/notifications/${userId}`
+        `${API_BASE_URL}/api/notifications/${userId}`
       );
 
       if (!res.ok) throw new Error("Failed to fetch notifications");
@@ -56,7 +56,7 @@ export default function NotificationDropdown() {
   const markAsRead = async (id: number) => {
     try {
       const res = await fetch(
-        `http://localhost:8080/api/notifications/${id}/read`,
+        `${API_BASE_URL}/api/notifications/${id}/read`,
         {
           method: "PUT",
           headers: {

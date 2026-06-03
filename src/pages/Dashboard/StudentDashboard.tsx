@@ -8,6 +8,7 @@ import {
   Tooltip,
   Legend,
 } from "recharts";
+import { API_BASE_URL } from "../../api/Api";
 
 interface Material {
   id: number;

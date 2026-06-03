@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import PageMeta from "../../../components/common/PageMeta";
+import { API_BASE_URL } from "../../../api/Api";
 
 interface Teacher {
   id: string | number;
@@ -43,7 +44,7 @@ export default function AssignUnitsPage() {
 
   // LOAD TEACHERS
   useEffect(() => {
-    fetch("http://localhost:8080/api/teachers", {
+    fetch(`${API_BASE_URL}/api/teachers`, {
       headers: authHeaders,
     })
       .then((res) => res.json())
@@ -63,7 +64,7 @@ export default function AssignUnitsPage() {
     }
 
     fetch(
-      `http://localhost:8080/api/courses/teacher/${selectedTeacher}/courses`,
+      `${API_BASE_URL}/api/courses/teacher/${selectedTeacher}/courses`,
       { headers: authHeaders }
     )
       .then((res) => res.json())
@@ -84,7 +85,7 @@ export default function AssignUnitsPage() {
       return;
     }
 
-    fetch(`http://localhost:8080/api/courses/${selectedCourse}/units`, {
+    fetch(`${API_BASE_URL}/api/courses/${selectedCourse}/units`, {
       headers: authHeaders,
     })
       .then((res) => res.json())
@@ -116,7 +117,7 @@ const handleSubmit = async (e: React.FormEvent) => {
 
   try {
     const res = await fetch(
-      `http://localhost:8080/api/teachers/units/assign`,
+      `${API_BASE_URL}/api/teachers/units/assign`,
       {
         method: "POST",
         headers: {

@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import PageMeta from "../../../components/common/PageMeta";
-import { getAuthHeaders } from "../../../api/Api";
+import { API_BASE_URL, getAuthHeaders } from "../../../api/Api";
 
 export default function PaymentDetailsPage() {
   const [payments, setPayments] = useState<any[]>([]);
@@ -10,7 +10,7 @@ export default function PaymentDetailsPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await fetch("http://localhost:8080/api/payments", {
+        const res = await fetch(`${API_BASE_URL}/api/payments`, {
           headers: getAuthHeaders(),
         });
 
@@ -28,7 +28,6 @@ export default function PaymentDetailsPage() {
     fetchData();
   }, []);
 
-  // SAFE helpers
   const getStudentName = (p: any) =>
     p?.student?.user?.name || "Unknown Student";
 
@@ -37,6 +36,10 @@ export default function PaymentDetailsPage() {
 
   const getCourseName = (p: any) =>
     p?.enrollment?.course?.title || "Unknown Course";
+
+  // ✅ ADDED: enrollment status getter
+  const getEnrollmentStatus = (p: any) =>
+    (p?.enrollment?.status || "pending").toLowerCase();
 
   const filteredPayments = useMemo(() => {
     return payments.filter((p) => {
@@ -75,7 +78,7 @@ export default function PaymentDetailsPage() {
   const handleStatusUpdate = async (id: number, newStatus: string) => {
     try {
       const res = await fetch(
-        `http://localhost:8080/api/payments/${id}?status=${newStatus}`,
+        `${API_BASE_URL}/api/payments/${id}?status=${newStatus}`,
         {
           method: "PUT",
           headers: getAuthHeaders(),
@@ -91,6 +94,40 @@ export default function PaymentDetailsPage() {
       }
     } catch (err) {
       console.error("Update failed:", err);
+    }
+  };
+
+  // ✅ ADDED: enrollment status update
+  const handleEnrollmentStatusUpdate = async (
+    enrollmentId: number,
+    newStatus: string
+  ) => {
+    try {
+      const res = await fetch(
+        `${API_BASE_URL}/api/enrollments/${enrollmentId}?status=${newStatus}`,
+        {
+          method: "PUT",
+          headers: getAuthHeaders(),
+        }
+      );
+
+      if (res.ok) {
+        setPayments((prev) =>
+          prev.map((p) =>
+            p.enrollment?.id === enrollmentId
+              ? {
+                  ...p,
+                  enrollment: {
+                    ...p.enrollment,
+                    status: newStatus,
+                  },
+                }
+              : p
+          )
+        );
+      }
+    } catch (err) {
+      console.error("Enrollment update failed:", err);
     }
   };
 
@@ -152,30 +189,24 @@ export default function PaymentDetailsPage() {
               <th className="p-3 text-left">Course</th>
               <th className="p-3 text-left">Amount</th>
               <th className="p-3 text-left">Status</th>
+              <th className="p-3 text-left">Enrollment</th>
               <th className="p-3 text-left">Date</th>
-              <th className="p-3 text-right">Action</th>
             </tr>
           </thead>
 
           <tbody>
             {filteredPayments.length === 0 ? (
               <tr>
-                <td
-                  colSpan={6}
-                  className="p-6 text-center text-gray-500"
-                >
+                <td colSpan={7} className="p-6 text-center text-gray-500">
                   No payments found
                 </td>
               </tr>
             ) : (
               filteredPayments.map((p) => (
                 <tr key={p.id} className="border-t">
-                  {/* ✅ UPDATED: Student ID + Name */}
                   <td className="p-3 font-medium">
                     <div className="flex flex-col">
-                      <span>
-                        {getStudentName(p)}
-                      </span>
+                      <span>{getStudentName(p)}</span>
                       <span className="text-xs text-gray-400">
                         ID: {getStudentId(p)}
                       </span>
@@ -194,8 +225,24 @@ export default function PaymentDetailsPage() {
                     <select
                       value={p.status}
                       onChange={(e) =>
-                        handleStatusUpdate(
-                          p.id,
+                        handleStatusUpdate(p.id, e.target.value)
+                      }
+                      className={`px-2 py-1 rounded text-xs ${
+                        statusStyles[p.status] || ""
+                      }`}
+                    >
+                      <option value="paid">Paid</option>
+                      <option value="pending">Pending</option>
+                      <option value="overdue">Overdue</option>
+                    </select>
+                  </td>
+
+                  <td className="p-3">
+                    <select
+                      value={getEnrollmentStatus(p)}
+                      onChange={(e) =>
+                        handleEnrollmentStatusUpdate(
+                          p.enrollment?.id,
                           e.target.value
                         )
                       }
@@ -203,24 +250,14 @@ export default function PaymentDetailsPage() {
                         statusStyles[p.status] || ""
                       }`}
                     >
-                      <option value="paid">Paid</option>
-                      <option value="pending">
-                        Pending
-                      </option>
-                      <option value="overdue">
-                        Overdue
-                      </option>
+                      <option value="enrolled">Enrolled</option>
+                      <option value="pending">Pending</option>
+                      <option value="cancelled">Cancelled</option>
                     </select>
                   </td>
 
                   <td className="p-3 text-gray-500 text-xs">
                     {p.paymentDate || "—"}
-                  </td>
-
-                  <td className="p-3 text-right">
-                    <span className="text-xs text-gray-400">
-                      #{p.id}
-                    </span>
                   </td>
                 </tr>
               ))

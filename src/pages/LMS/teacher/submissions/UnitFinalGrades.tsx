@@ -1,6 +1,7 @@
 import { useParams } from "react-router-dom";
 import { useEffect, useState, useCallback } from "react";
 import PageMeta from "../../../../components/common/PageMeta";
+import { API_BASE_URL } from "../../../../api/Api";
 
 interface Enrollment {
   student: {
@@ -35,8 +36,8 @@ export default function UnitFinalGradesPage() {
       setLoading(true);
 
       const [enrollRes, gradeRes] = await Promise.all([
-        fetch(`http://localhost:8080/api/enrollments/course/${courseId}`),
-        fetch(`http://localhost:8080/api/grades/unit/${unitId}/final`)
+        fetch(`${API_BASE_URL}/api/enrollments/course/${courseId}`),
+        fetch(`${API_BASE_URL}/api/grades/unit/${unitId}/final`)
       ]);
 
       const enrollments: Enrollment[] = await enrollRes.json();
@@ -88,7 +89,7 @@ const handleSave = async (row: FinalGrade) => {
 
   try {
     const enrollRes = await fetch(
-      `http://localhost:8080/api/enrollments/course/${courseId}`
+      `${API_BASE_URL}/api/enrollments/course/${courseId}`
     );
 
     const enrollments = await enrollRes.json();
@@ -111,7 +112,7 @@ const handleSave = async (row: FinalGrade) => {
     };
 
     const res = await fetch(
-      `http://localhost:8080/api/grades/add?teacherId=${localStorage.userId}`,
+      `${API_BASE_URL}/api/grades/add?teacherId=${localStorage.userId}`,
       {
         method: "POST",
         headers: {

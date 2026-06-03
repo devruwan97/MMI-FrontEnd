@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import PageMeta from "../../../components/common/PageMeta";
+import { API_BASE_URL } from "../../../api/Api";
 
 interface Enrollment {
   id: number;
@@ -13,32 +14,31 @@ export default function EnrollmentsPage() {
   const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [search, setSearch] = useState("");
 
-  // ---------------- FETCH ALL ENROLLMENTS ----------------
+  const [search, setSearch] = useState("");
+  const [courseFilter, setCourseFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
+
   useEffect(() => {
     const token = localStorage.getItem("token");
 
-    fetch("http://localhost:8080/api/enrollments", {
+    fetch(`${API_BASE_URL}/api/enrollments`, {
       headers: {
         ...(token && { Authorization: `Bearer ${token}` }),
       },
     })
-      .then(async (res) => {
-        if (!res.ok) {
-          throw new Error(`Server error (${res.status})`);
-        }
+      .then((res) => {
+        if (!res.ok) throw new Error(`Server error (${res.status})`);
         return res.json();
       })
       .then((data) => {
         const list = Array.isArray(data) ? data : [];
 
-        // ✅ FIXED MAPPING FROM YOUR BACKEND JSON
         const mapped = list.map((item: any) => ({
           id: item.id,
           student_name: item.student?.user?.name || "N/A",
           course_title: item.course?.title || "N/A",
-          status: (item.status || "pending").toLowerCase(), // 🔥 FIXED
+          status: (item.status || "pending").toLowerCase(),
           enrolled_at: item.enrolledAt
             ? new Date(item.enrolledAt).toLocaleDateString()
             : "N/A",
@@ -46,20 +46,16 @@ export default function EnrollmentsPage() {
 
         setEnrollments(mapped);
       })
-      .catch((err) => {
-        console.error(err);
-        setError(err.message);
-      })
+      .catch((err) => setError(err.message))
       .finally(() => setIsLoading(false));
   }, []);
 
-  // ---------------- UPDATE STATUS API ----------------
   const updateStatus = async (id: number, newStatus: string) => {
     try {
       const token = localStorage.getItem("token");
 
       const res = await fetch(
-        `http://localhost:8080/api/enrollments/${id}?status=${newStatus}`,
+        `${API_BASE_URL}/api/enrollments/${id}?status=${newStatus}`,
         {
           method: "PUT",
           headers: {
@@ -68,35 +64,35 @@ export default function EnrollmentsPage() {
         }
       );
 
-      if (!res.ok) {
-        throw new Error("Failed to update status");
-      }
-
-      const updated = await res.json();
-
-      // 🔥 normalize backend response
-      const updatedStatus = (updated.status || newStatus).toLowerCase();
+      if (!res.ok) throw new Error();
 
       setEnrollments((prev) =>
         prev.map((e) =>
-          e.id === id ? { ...e, status: updatedStatus } : e
+          e.id === id ? { ...e, status: newStatus } : e
         )
       );
-    } catch (err) {
-      console.error(err);
+    } catch {
       alert("Status update failed");
     }
   };
 
-  // ---------------- SEARCH FILTER ----------------
-  const filtered = enrollments.filter(
-    (e) =>
-      e.student_name.toLowerCase().includes(search.toLowerCase()) ||
-      e.course_title.toLowerCase().includes(search.toLowerCase())
-  );
+  const uniqueCourses = ["all", ...new Set(enrollments.map(e => e.course_title))];
 
-  // ---------------- STATUS COLORS ----------------
-  const getStatusStyle = (status: string) => {
+  const filtered = enrollments.filter((e) => {
+    const matchSearch =
+      e.student_name.toLowerCase().includes(search.toLowerCase()) ||
+      e.course_title.toLowerCase().includes(search.toLowerCase());
+
+    const matchCourse =
+      courseFilter === "all" || e.course_title === courseFilter;
+
+    const matchStatus =
+      statusFilter === "all" || e.status === statusFilter;
+
+    return matchSearch && matchCourse && matchStatus;
+  });
+
+  const getStatusBadge = (status: string) => {
     switch (status) {
       case "enrolled":
         return "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400";
@@ -111,90 +107,122 @@ export default function EnrollmentsPage() {
 
   return (
     <>
-      <PageMeta
-        title="All Enrollments | Admin"
-        description="Manage enrollments"
-      />
+      <PageMeta title="All Enrollments | Admin" description="Manage enrollments" />
 
-      {/* HEADER */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-800 dark:text-white">
-          All Enrollments
-        </h1>
-      </div>
+      <div className="space-y-6">
 
-      {/* SEARCH */}
-      <input
-        type="text"
-        placeholder="Search student or course..."
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        className="mb-6 w-full max-w-md rounded-xl border px-4 py-2 text-sm dark:bg-gray-900"
-      />
-
-      {/* STATES */}
-      {isLoading && (
-        <div className="text-center py-10 text-gray-500">
-          Loading...
+        {/* HEADER */}
+        <div>
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-white">
+            All Enrollments
+          </h1>
+          <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">
+            Manage student course registrations
+          </p>
         </div>
-      )}
 
-      {error && (
-        <div className="text-center py-10 text-red-500">
-          {error}
-        </div>
-      )}
+        {/* FILTER BAR */}
+        <div className="flex flex-col lg:flex-row gap-3">
 
-      {/* TABLE */}
-      <div className="rounded-2xl border bg-white dark:bg-gray-900 overflow-hidden">
-        <table className="w-full text-sm text-left">
-          <thead className="bg-gray-50 dark:bg-gray-800">
-            <tr>
-              <th className="px-5 py-4">Student</th>
-              <th className="px-5 py-4">Course</th>
-              <th className="px-5 py-4">Status</th>
-              <th className="px-5 py-4">Date</th>
-            </tr>
-          </thead>
+          <input
+            type="text"
+            placeholder="Search student or course..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="flex-1 rounded-xl border px-4 py-2 text-sm dark:bg-gray-900 dark:border-gray-700"
+          />
 
-          <tbody>
-            {filtered.map((e) => (
-              <tr key={e.id} className="border-t dark:border-gray-800">
-                {/* STUDENT */}
-                <td className="px-5 py-4 font-medium">
-                  {e.student_name}
-                </td>
-
-                {/* COURSE */}
-                <td className="px-5 py-4">
-                  {e.course_title}
-                </td>
-
-                {/* STATUS DROPDOWN */}
-                <td className="px-5 py-4">
-                  <select
-                    value={e.status}
-                    onChange={(ev) =>
-                      updateStatus(e.id, ev.target.value)
-                    }
-                    className={`text-xs px-2 py-1 rounded-md border ${getStatusStyle(
-                      e.status
-                    )}`}
-                  >
-                    <option value="enrolled">ENROLLED</option>
-                    <option value="pending">PENDING</option>
-                    <option value="cancelled">CANCELLED</option>
-                  </select>
-                </td>
-
-                {/* DATE */}
-                <td className="px-5 py-4 text-xs text-gray-500">
-                  {e.enrolled_at}
-                </td>
-              </tr>
+          <select
+            value={courseFilter}
+            onChange={(e) => setCourseFilter(e.target.value)}
+            className="rounded-xl border px-4 py-2 text-sm dark:bg-gray-900 dark:border-gray-700"
+          >
+            {uniqueCourses.map((c) => (
+              <option key={c} value={c}>
+                {c === "all" ? "All Courses" : c}
+              </option>
             ))}
-          </tbody>
-        </table>
+          </select>
+
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="rounded-xl border px-4 py-2 text-sm dark:bg-gray-900 dark:border-gray-700"
+          >
+            <option value="all">All Status</option>
+            <option value="enrolled">Enrolled</option>
+            <option value="pending">Pending</option>
+            <option value="cancelled">Cancelled</option>
+          </select>
+
+        </div>
+
+        {/* STATES */}
+        {isLoading && (
+          <div className="text-center py-10 text-gray-500">
+            Loading...
+          </div>
+        )}
+
+        {error && (
+          <div className="text-center py-10 text-red-500">
+            {error}
+          </div>
+        )}
+
+        {/* TABLE */}
+        {!isLoading && !error && (
+          <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden shadow-lg">
+
+            <table className="w-full text-sm">
+              <thead className="bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-300">
+                <tr>
+                  <th className="px-5 py-4 text-left">Student</th>
+                  <th className="px-5 py-4 text-left">Course</th>
+                  <th className="px-5 py-4 text-left">Status</th>
+                  <th className="px-5 py-4 text-left">Date</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {filtered.map((e) => (
+                  <tr
+                    key={e.id}
+                    className="border-t border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 transition"
+                  >
+                    <td className="px-5 py-4 font-medium text-gray-800 dark:text-white">
+                      {e.student_name}
+                    </td>
+
+                    <td className="px-5 py-4 text-gray-600 dark:text-gray-300">
+                      {e.course_title}
+                    </td>
+
+                    <td className="px-5 py-4">
+                      <select
+                        value={e.status}
+                        onChange={(ev) => updateStatus(e.id, ev.target.value)}
+                        className={`text-xs px-3 py-1 rounded-full border outline-none ${getStatusBadge(
+                          e.status
+                        )}`}
+                      >
+                        <option value="enrolled">Enrolled</option>
+                        <option value="pending">Pending</option>
+                        <option value="cancelled">Cancelled</option>
+                      </select>
+                    </td>
+
+                    <td className="px-5 py-4 text-xs text-gray-500">
+                      {e.enrolled_at}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
+          </div>
+        )}
+
       </div>
     </>
   );

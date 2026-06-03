@@ -9,10 +9,9 @@ import {
   ResponsiveContainer,
   PieChart,
   Pie,
-  Cell,
-  LineChart,
-  Line,
+  Cell
 } from "recharts";
+import { API_BASE_URL } from "../../../api/Api";
 
 interface Course {
   id: number;
@@ -42,8 +41,8 @@ export default function FinancialAnalytics() {
         setLoading(true);
 
         const [courseRes, enrollRes] = await Promise.all([
-          fetch("http://localhost:8080/api/courses"),
-          fetch("http://localhost:8080/api/enrollments"),
+          fetch(`${API_BASE_URL}/api/courses`),
+          fetch(`${API_BASE_URL}/api/enrollments`),
         ]);
 
         const coursesData = await courseRes.json();

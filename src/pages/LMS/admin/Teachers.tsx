@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import PageMeta from "../../../components/common/PageMeta";
+import { API_BASE_URL } from "../../../api/Api";
 
 interface Teacher {
   id: string | number;
@@ -22,7 +23,7 @@ export default function TeachersPage() {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    const url = "http://localhost:8080/api/teachers";
+    const url = `${API_BASE_URL}/api/teachers`;
     console.log(`Fetching teachers from: ${url}`);
 
     fetch(url, {

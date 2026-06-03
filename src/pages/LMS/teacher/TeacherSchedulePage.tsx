@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import PageMeta from "../../../components/common/PageMeta";
-import { getAuthHeaders } from "../../../api/Api";
+import { API_BASE_URL, getAuthHeaders } from "../../../api/Api";
 
 // Simulating logged-in teacher #1 (Dr. Sarah Mitchell)
 const TEACHER_ID = 1;
@@ -16,8 +16,8 @@ export default function TeacherSchedulePage() {
       try {
         const headers = getAuthHeaders();
         const [sRes, cRes] = await Promise.all([
-          fetch("http://localhost:8080/api/schedules", { headers }),
-          fetch("http://localhost:8080/api/courses", { headers }),
+          fetch(`${API_BASE_URL}/api/schedules`, { headers }),
+          fetch(`${API_BASE_URL}/api/courses`, { headers }),
         ]);
 
         if (sRes.ok) setSchedules(await sRes.json());

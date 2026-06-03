@@ -111,8 +111,6 @@ const navItems: NavItem[] = [
 
   { icon: <DollarLineIcon />, name: "Payments", path: "/payments", roles: ["student"] },
 
-
-  { icon: <CalenderIcon />, name: "My Schedule", path: "/teacher/schedule", roles: ["teacher"] },
   { icon: <UserCircleIcon />, name: "About Us", path: "/about", roles: ["student"] },
 
   { icon: <MailIcon />, name: "Contact", path: "/contact", roles: ["student"] },
