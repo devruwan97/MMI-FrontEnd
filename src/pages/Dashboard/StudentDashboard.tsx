@@ -51,10 +51,9 @@ export default function StudentDashboard() {
           Authorization: `Bearer ${token}`,
         };
 
-        // Fetch user profile and their specific units in parallel
         const [userRes, unitsRes] = await Promise.all([
           fetch(`http://localhost:8080/api/users/${userId}`, { headers }),
-          fetch(`http://localhost:8080/api/students/${userId}/units`, { headers }),
+          fetch(`http://localhost:8080/api/courses/student/${userId}/units`, { headers }),
         ]);
 
         if (userRes.ok) {
@@ -64,7 +63,6 @@ export default function StudentDashboard() {
 
         if (unitsRes.ok) {
           const unitsData = await unitsRes.json();
-          // Handle cases where response might be a raw array or wrapped in a 'units' property
           setUnits(Array.isArray(unitsData) ? unitsData : unitsData.units || []);
         } else if (unitsRes.status === 403) {
           throw new Error("Access Denied (403): You do not have permission to view these academic records. Check your student role assignment.");

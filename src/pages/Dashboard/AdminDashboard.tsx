@@ -24,7 +24,6 @@ export default function AdminDashboard() {
   useEffect(() => {
     const fetchAdminData = async () => {
       try {
-        // Simulated API fetch matching your project pattern
         const token = localStorage.getItem("token");
         const res = await fetch("http://localhost:8080/api/admin/stats", {
           headers: {
